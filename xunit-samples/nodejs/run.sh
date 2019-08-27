@@ -1,0 +1,1 @@
+mocha test.js --reporter=xunit --reporter-options output=./xunit-results.xml

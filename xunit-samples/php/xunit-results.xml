@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Sample PHP test" tests="2" assertions="1" errors="0" failures="1" skipped="0" time="0.005261">
+    <testsuite name="RegionTag" file="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/php/test/classTest.php" tests="2" assertions="1" errors="0" failures="1" skipped="0" time="0.005261">
+      <testcase name="testPass" class="RegionTag" classname="RegionTag" file="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/php/test/classTest.php" line="6" assertions="0" time="0.004329"/>
+      <testcase name="testFail" class="RegionTag" classname="RegionTag" file="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/php/test/classTest.php" line="10" assertions="1" time="0.000932">
+        <failure type="PHPUnit\Framework\AssertionFailedError">RegionTag::testFail
+foo
+
+/Users/anassri/Desktop/repo-automation-playground/xunit-samples/php/test/classTest.php:11
+</failure>
+      </testcase>
+    </testsuite>
+  </testsuite>
+</testsuites>

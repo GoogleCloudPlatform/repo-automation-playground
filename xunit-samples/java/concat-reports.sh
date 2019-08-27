@@ -1,0 +1,1 @@
+echo "<testsuites>$(cat target/surefire-reports/*.xml)</testsuites>" > xunit-results.xml

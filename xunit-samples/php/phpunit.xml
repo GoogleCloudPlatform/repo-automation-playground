@@ -1,0 +1,10 @@
+<phpunit>
+    <testsuites>
+        <testsuite name="Sample PHP test">
+            <directory>test</directory>
+        </testsuite>
+    </testsuites>
+    <logging>
+    	<log type="junit" target="output.xml"/>
+    </logging>
+</phpunit>

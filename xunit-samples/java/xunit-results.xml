@@ -1,0 +1,139 @@
+<testsuites><?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="com.google.example.SomeClassTest" time="0.033" tests="2" errors="0" skipped="0" failures="1">
+  <properties>
+    <property name="gopherProxySet" value="false"/>
+    <property name="awt.toolkit" value="sun.lwawt.macosx.LWCToolkit"/>
+    <property name="java.specification.version" value="11"/>
+    <property name="sun.cpu.isalist" value=""/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/test-classes:/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/classes:/Users/anassri/.m2/repository/junit/junit/4.13-beta-3/junit-4.13-beta-3.jar:/Users/anassri/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/anassri/.m2/repository/com/google/truth/truth/0.45/truth-0.45.jar:/Users/anassri/.m2/repository/com/google/guava/guava/27.0.1-android/guava-27.0.1-android.jar:/Users/anassri/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar:/Users/anassri/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/Users/anassri/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/Users/anassri/.m2/repository/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar:/Users/anassri/.m2/repository/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar:/Users/anassri/.m2/repository/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar:/Users/anassri/.m2/repository/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar:/Users/anassri/.m2/repository/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar:/Users/anassri/.m2/repository/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar:"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="user.timezone" value=""/>
+    <property name="java.vm.specification.version" value="11"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.boot.library.path" value="/Library/Java/JavaVirtualMachines/openjdk-11.0.2.jdk/Contents/Home/lib"/>
+    <property name="sun.java.command" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/surefire/surefirebooter5195481908679711812.jar /Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/surefire 2019-08-29T09-26-32_963-jvmRun1 surefire12804838678865584064tmp surefire_011214626129646100302tmp"/>
+    <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/test-classes:/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/classes:/Users/anassri/.m2/repository/junit/junit/4.13-beta-3/junit-4.13-beta-3.jar:/Users/anassri/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/anassri/.m2/repository/com/google/truth/truth/0.45/truth-0.45.jar:/Users/anassri/.m2/repository/com/google/guava/guava/27.0.1-android/guava-27.0.1-android.jar:/Users/anassri/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar:/Users/anassri/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/Users/anassri/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/Users/anassri/.m2/repository/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar:/Users/anassri/.m2/repository/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar:/Users/anassri/.m2/repository/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar:/Users/anassri/.m2/repository/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar:/Users/anassri/.m2/repository/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar:/Users/anassri/.m2/repository/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/Users/anassri"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2019-01-15"/>
+    <property name="java.home" value="/Library/Java/JavaVirtualMachines/openjdk-11.0.2.jdk/Contents/Home"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.CGraphicsEnvironment"/>
+    <property name="surefire.real.class.path" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/surefire/surefirebooter5195481908679711812.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="java.runtime.version" value="11.0.2+9"/>
+    <property name="user.name" value="anassri"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="10.14.3"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="18.9"/>
+    <property name="localRepository" value="/Users/anassri/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="/var/folders/94/hw8j4_4d4_395h71w2z31n7h00c2jw/T/"/>
+    <property name="java.version" value="11.0.2"/>
+    <property name="user.dir" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java"/>
+    <property name="os.arch" value="x86_64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="java.awt.printerjob" value="sun.lwawt.macosx.CPrinterJob"/>
+    <property name="sun.os.patch.level" value="unknown"/>
+    <property name="java.library.path" value="/Users/anassri/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.vm.version" value="11.0.2+9"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeBig"/>
+    <property name="java.class.version" value="55.0"/>
+    <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+  </properties>
+  <testcase name="regionTag_shouldFail" classname="com.google.example.SomeClassTest" time="0.005">
+    <failure message="should fail" type="java.lang.AssertionError">java.lang.AssertionError: should fail
+	at com.google.example.SomeClassTest.regionTag_shouldFail(SomeClassTest.java:33)
+</failure>
+  </testcase>
+  <testcase name="regionTag_shouldPass" classname="com.google.example.SomeClassTest" time="0"/>
+</testsuite><?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="com.google.region_tag.example.SomeClassTest" time="0.034" tests="2" errors="0" skipped="0" failures="1">
+  <properties>
+    <property name="gopherProxySet" value="false"/>
+    <property name="awt.toolkit" value="sun.lwawt.macosx.LWCToolkit"/>
+    <property name="java.specification.version" value="11"/>
+    <property name="sun.cpu.isalist" value=""/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/test-classes:/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/classes:/Users/anassri/.m2/repository/junit/junit/4.13-beta-3/junit-4.13-beta-3.jar:/Users/anassri/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/anassri/.m2/repository/com/google/truth/truth/0.45/truth-0.45.jar:/Users/anassri/.m2/repository/com/google/guava/guava/27.0.1-android/guava-27.0.1-android.jar:/Users/anassri/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar:/Users/anassri/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/Users/anassri/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/Users/anassri/.m2/repository/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar:/Users/anassri/.m2/repository/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar:/Users/anassri/.m2/repository/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar:/Users/anassri/.m2/repository/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar:/Users/anassri/.m2/repository/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar:/Users/anassri/.m2/repository/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar:"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="user.timezone" value=""/>
+    <property name="java.vm.specification.version" value="11"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.boot.library.path" value="/Library/Java/JavaVirtualMachines/openjdk-11.0.2.jdk/Contents/Home/lib"/>
+    <property name="sun.java.command" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/surefire/surefirebooter710821168371852993.jar /Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/surefire 2019-08-28T18-48-07_452-jvmRun1 surefire12672250460639121592tmp surefire_06001508117243344430tmp"/>
+    <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/test-classes:/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/classes:/Users/anassri/.m2/repository/junit/junit/4.13-beta-3/junit-4.13-beta-3.jar:/Users/anassri/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/anassri/.m2/repository/com/google/truth/truth/0.45/truth-0.45.jar:/Users/anassri/.m2/repository/com/google/guava/guava/27.0.1-android/guava-27.0.1-android.jar:/Users/anassri/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar:/Users/anassri/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/Users/anassri/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/Users/anassri/.m2/repository/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar:/Users/anassri/.m2/repository/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar:/Users/anassri/.m2/repository/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar:/Users/anassri/.m2/repository/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar:/Users/anassri/.m2/repository/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar:/Users/anassri/.m2/repository/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/Users/anassri"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2019-01-15"/>
+    <property name="java.home" value="/Library/Java/JavaVirtualMachines/openjdk-11.0.2.jdk/Contents/Home"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.CGraphicsEnvironment"/>
+    <property name="surefire.real.class.path" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java/target/surefire/surefirebooter710821168371852993.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="java.runtime.version" value="11.0.2+9"/>
+    <property name="user.name" value="anassri"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="10.14.3"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="18.9"/>
+    <property name="localRepository" value="/Users/anassri/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="/var/folders/94/hw8j4_4d4_395h71w2z31n7h00c2jw/T/"/>
+    <property name="java.version" value="11.0.2"/>
+    <property name="user.dir" value="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/java"/>
+    <property name="os.arch" value="x86_64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="java.awt.printerjob" value="sun.lwawt.macosx.CPrinterJob"/>
+    <property name="sun.os.patch.level" value="unknown"/>
+    <property name="java.library.path" value="/Users/anassri/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.vm.version" value="11.0.2+9"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeBig"/>
+    <property name="java.class.version" value="55.0"/>
+    <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+  </properties>
+  <testcase name="should_fail" classname="com.google.region_tag.example.SomeClassTest" time="0.006">
+    <failure message="should fail" type="java.lang.AssertionError">java.lang.AssertionError: should fail
+	at com.google.region_tag.example.SomeClassTest.should_fail(SomeClassTest.java:33)
+</failure>
+  </testcase>
+  <testcase name="should_pass" classname="com.google.region_tag.example.SomeClassTest" time="0"/>
+</testsuite></testsuites>
