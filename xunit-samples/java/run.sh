@@ -1,0 +1,1 @@
+mvn surefire-report:report

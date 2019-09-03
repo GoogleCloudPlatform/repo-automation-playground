@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<testsuites time="0.016" tests="4" failures="2">
+  <testsuite id="0" name="/Users/anassri/Desktop/repo-automation-playground/xunit-samples/dotnet/Test/bin/Debug/netcoreapp2.0/Test.dll" tests="4" failures="2" time="0.016">
+    <testcase classname="GoogleCloudSamples.RegionTag" name="GoogleCloudSamples.RegionTag.TestFail" time="0.0070000">
+      <error message="should fail&#xA;Expected: True&#xA;Actual:   False">   at GoogleCloudSamples.RegionTag.TestFail() in /Users/anassri/Desktop/repo-automation-playground/xunit-samples/dotnet/Test/Test.cs:line 28</error>
+    </testcase>
+    <testcase classname="GoogleCloudSamples.RegionTag" name="GoogleCloudSamples.RegionTag.TestPass" time="0.0010000" />
+    <testcase classname="GoogleCloudSamples.SomeNestedClass+RegionTag" name="GoogleCloudSamples.SomeNestedClass+RegionTag.TestPass" time="0.0070000" />
+    <testcase classname="GoogleCloudSamples.SomeNestedClass+RegionTag" name="GoogleCloudSamples.SomeNestedClass+RegionTag.TestFail" time="0.0010000">
+      <error message="should fail&#xA;Expected: True&#xA;Actual:   False">   at GoogleCloudSamples.SomeNestedClass.RegionTag.TestFail() in /Users/anassri/Desktop/repo-automation-playground/xunit-samples/dotnet/Test/Test.cs:line 43</error>
+    </testcase>
+  </testsuite>
+</testsuites>

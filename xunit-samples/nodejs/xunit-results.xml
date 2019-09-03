@@ -1,0 +1,6 @@
+<testsuite name="Mocha Tests" tests="2" failures="0" errors="1" skipped="0" timestamp="Thu, 29 Aug 2019 16:24:55 GMT" time="0.003">
+<testcase classname="region_tag bar baz" name="should pass" time="0"/>
+<testcase classname="region_tag bar baz" name="should fail" time="0.001"><failure>top-level region tag
+AssertionError [ERR_ASSERTION]: top-level region tag
+    at Context.it (test.js:13:11)</failure></testcase>
+</testsuite>

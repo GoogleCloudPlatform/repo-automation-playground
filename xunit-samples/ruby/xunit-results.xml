@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="rspec" tests="2" skipped="0" failures="1" errors="0" time="0.001991" timestamp="2019-08-28T21:16:47-07:00" hostname="anassri-macbookpro2.roam.corp.google.com">
+<properties>
+<property name="seed" value="63214"/>
+</properties>
+<testcase classname="example_spec" name="region_tag bar baz should pass" file="./example_spec.rb" time="0.000063"></testcase>
+<testcase classname="example_spec" name="region_tag bar baz should fail" file="./example_spec.rb" time="0.000050"><failure message="top-level region tag" type="RuntimeError">Failure/Error: fail &apos;top-level region tag&apos;;
+
+RuntimeError:
+  top-level region tag
+./example_spec.rb:9:in `block (3 levels) in &lt;top (required)&gt;&apos;</failure></testcase>
+</testsuite>

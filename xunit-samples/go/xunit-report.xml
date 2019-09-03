@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+	<testsuite tests="1" failures="1" time="0.070" name="_/Users/anassri/Desktop/repo-automation-playground/xunit-samples/go">
+		<properties>
+			<property name="go.version" value="go1.12.9"></property>
+		</properties>
+		<testcase classname="go" name="Failure" time="0.000">
+			<failure message="Failed" type="">            example_test.go:35: should fail</failure>
+		</testcase>
+	</testsuite>
+</testsuites>

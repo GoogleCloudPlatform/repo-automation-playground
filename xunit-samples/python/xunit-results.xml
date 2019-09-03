@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuite errors="0" failures="1" name="pytest" skipped="0" tests="2" time="0.084"><testcase classname="test.RegionTag" file="test.py" line="9" name="test_should_fail" time="0.001"><failure message="AssertionError: top-level region tag">self = &lt;test.RegionTag testMethod=test_should_fail&gt;
+
+    def test_should_fail(self):
+&gt;   	self.fail(&apos;top-level region tag&apos;)
+E    AssertionError: top-level region tag
+
+test.py:11: AssertionError</failure></testcase><testcase classname="test.RegionTag" file="test.py" line="6" name="test_should_pass" time="0.001"></testcase></testsuite>

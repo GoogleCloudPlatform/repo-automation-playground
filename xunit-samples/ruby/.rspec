@@ -1,0 +1,3 @@
+--pattern example_spec.rb
+--format RspecJunitFormatter
+--out xunit-results.xml
