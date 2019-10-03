@@ -232,6 +232,8 @@ const main = async (dirs) => {
 //   grep -L -e "count=\"[2-9]\"" **/clover.xml
 // Find mismatched region tags (between tests and sample code):
 //   diff <(grep "\[START" *.js | cut -d':' -f2 | egrep -o '([a-z]|_)+' | sort | uniq) <(grep "(\\'" test/*.js | grep '_' | egrep -o '([a-z]|_)+' | grep '_' | sort | uniq) | grep '_' | sort
+// Find duplicate region tag `describe`s in a file
+//   grep describe\( *.js | perl -pe 's/^[[:space:]]+//g' | sort | uniq -d
 const dirs = [
 	"YOUR_DIRS_HERE"
 ]
