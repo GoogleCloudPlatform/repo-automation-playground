@@ -231,7 +231,7 @@ const main = async (dirs) => {
 // Find bad code-coverage files (fix: rerun the tests):
 //   grep -L -e "count=\"[2-9]\"" **/clover.xml
 // Find mismatched region tags (between tests and sample code):
-//   diff <(grep "\[START" *.js | cut -d':' -f2 | egrep -o '([a-z]|_)+') <(grep "(\\'" test/*.js | grep '_' | egrep -o '([a-z]|_)+' | grep '_' | sort | uniq) | grep '_' | sort
+//   diff <(grep "\[START" *.js | cut -d':' -f2 | egrep -o '([a-z]|_)+' | sort | uniq) <(grep "(\\'" test/*.js | grep '_' | egrep -o '([a-z]|_)+' | grep '_' | sort | uniq) | grep '_' | sort
 const dirs = [
 	"YOUR_DIRS_HERE"
 ]
