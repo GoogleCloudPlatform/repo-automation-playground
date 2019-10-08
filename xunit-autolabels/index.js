@@ -42,9 +42,6 @@ const generateAndLinkToCloverReports = async (baseDir, allTestsXml) => {
 		testFilterDirs = testFilterDirs.map(dir => dir.replace(bannedChar, ''));
 	}
 
-	console.log(`TF`, testFilters)
-	console.log(`TF-D`, testFilterDirs)
-
 	let covCmds = []
 	for (let i = 0; i < testFilters.length; i++) {
 		// Skip dirs that exist
@@ -56,7 +53,7 @@ const generateAndLinkToCloverReports = async (baseDir, allTestsXml) => {
 			covCmds.push(`${chalk.red.bold('nyc')} --all --reporter=clover --report-dir="test-${testFilterDirs[i]}" ${chalk.green.bold('mocha')} --grep "${testFilters[i]}" --timeout 20000 --exit`);
 		} else if (language === 'PYTHON') {
 			const coverageDir = `test-${testFilterDirs[i]}`;
-			covCmds.push(`${chalk.red.bold('pytest')} --cov=. --cov-report xml -k "${testFilters[i]}" && ${chalk.green.bold('mkdir')} ${coverageDir} && ${chalk.green.bold('mv')} coverage.xml ${coverageDir}/clover.xml`)
+			covCmds.push(`${chalk.red.bold('pytest')} --cov=. --cov-report xml -k "${testFilters[i]}" && ${chalk.green.bold('mkdir')} ${coverageDir} && sleep 5 && ${chalk.green.bold('mv')} coverage.xml ${coverageDir}/clover.xml`)
 		}
 	}
 
@@ -114,12 +111,12 @@ const _findRegionTagsAndRanges = (sourcePath) => {
 	const sourceLines = fs.readFileSync(sourcePath, 'utf-8').split('\n');
 
 	// Find region tag blocks
-	const startRegionTagLines = _getMatchingLineNums(sourceLines, line => line.includes('[START '))
-	const endRegionTagLines = _getMatchingLineNums(sourceLines, line => line.includes('[END '))
+	let startRegionTagLines = _getMatchingLineNums(sourceLines, line => line.includes('[START '))
+	let endRegionTagLines = _getMatchingLineNums(sourceLines, line => line.includes('[END '))
 
 	// Map region tags to method invocations
 	const regionTagRanges = startRegionTagLines.map((start, idx) => [start, endRegionTagLines[idx]]);
-	const regionTagsAndRanges = regionTagRanges.map(range => {
+	let regionTagsAndRanges = regionTagRanges.map(range => {
 		let tag = sourceLines[range[0] - 1]
 		tag = tag.substring(tag.indexOf('START') + 6).replace(']', '')
 
@@ -127,6 +124,25 @@ const _findRegionTagsAndRanges = (sourcePath) => {
 		out[tag] = range;
 		return out;
 	});
+
+	// Identify + delete (obvious) "helper method" region tags
+	// (Helper method detection is imperfect, and relies on optional per-language idioms)
+	regionTagsAndRanges = regionTagsAndRanges.filter(tagAndRange => {
+		const range = Object.values(tagAndRange)[0]
+		const rangeLines = sourceLines.slice(range[0], range[1])
+
+		// Return TRUE if range contains an actual snippet (and not just snippet helper methods)
+		return rangeLines.some(line => {
+			if (language === 'NODEJS' && line.startsWith('exports')) {
+				return true
+			} else if (language === 'PYTHON' && line.match(/\s*def/) && !line.match(/\s*def\s_/)) {
+				return true
+			} else {
+				return false
+			}
+		})
+	})
+
 	return regionTagsAndRanges
 }
 
@@ -191,7 +207,7 @@ const wrapIndividualTestInRegionTag = async (testPath, testFilterName, cloverRep
 	if (language === 'NODEJS') {
 		regionTagStartLine =`describe('${regionTag}', () => {`;
 	} else if (language === 'PYTHON') {
-		regionTagStartLine = `class ${camelcase(regionTag, {pascalCase: true})}():`;
+		regionTagStartLine = `class Test${camelcase(regionTag, {pascalCase: true})}():`;
 	}
 
 	const testStartLineNum = _getMatchingLineNums(testLines, line => line.includes(testFilterName))[0]
@@ -222,6 +238,16 @@ const wrapIndividualTestInRegionTag = async (testPath, testFilterName, cloverRep
 		testLines.splice(testStartLineNum - 1, 0, regionTagStartLine)
 
 	} else if (language === 'PYTHON') {
+		// Add 'self' param to 'def' statements
+		const defLine = testLines[testStartLineNum - 1]
+		if (!defLine.includes('self')) {
+			if (defLine.includes('()')) {
+				testLines[testStartLineNum - 1] = defLine.replace('()', '(self)')
+			} else {
+				testLines[testStartLineNum - 1] = defLine.replace('(', '(self, ')
+			}
+		}
+
 		// Add start line (describe(...)) if necessary
 		testLines.splice(testStartLineNum - 1, 0, regionTagStartLine)
 
@@ -300,8 +326,15 @@ const perDirMain = async (baseDir) => {
 
 		const cloverReportPath = path.join(baseDir, `test-${testFilterDir}/clover.xml`)
 
+		let tagJoinString;
+		if (language === 'NODEJS') {
+			tagJoinString = ' '
+		} else if (language === 'PYTHON') {
+			tagJoinString = 'And'
+		}
+
 		const tags = await getRegionTagsForTest(baseDir, cloverReportPath)
-		let tagString = uniq(tags.map(tag => Object.keys(tag)).sort(), true).join(' ')
+		let tagString = uniq(tags.map(tag => Object.keys(tag)[0]).sort()).join(tagJoinString)
 
 		if (tags.length != 0) {
 			let testFilter = testRawFilter;
