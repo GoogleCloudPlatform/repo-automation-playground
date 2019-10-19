@@ -204,9 +204,6 @@ const getRegionTagsForTest = (baseDir, cloverReportPath) => {
 	const coveredCodeLines = _findCoveredCodeLines(sourcePath, cloverReportPath);
 	const regionTagsAndRanges = _findRegionTagsAndRanges(sourcePath)
 
-	console.log(`CCL`, coveredCodeLines)
-	console.log(`RTAR`, regionTagsAndRanges)
-
 	const hitRegionTags = regionTagsAndRanges.filter(tagAndRange => {
 		const tag = Object.keys(tagAndRange)[0]
 		const range = Object.values(tagAndRange)[0]
