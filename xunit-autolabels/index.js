@@ -14,7 +14,7 @@ const chalk = require('chalk');
 const camelcase = require('camelcase');
 
 // const language = 'NODEJS';
-const language = 'PYTHON';
+const language = 'RUBY'; // Set to one of 'RUBY', 'NODEJS', ot 'PYTHON' (case sensitive)
 
 const queryXmlFile = (filename, xpath) => {
 	const fileContents = fs.readFileSync(filename, 'utf-8');
@@ -26,7 +26,7 @@ const queryXmlFile = (filename, xpath) => {
 // Constants
 const generateAndLinkToCloverReports = async (baseDir, allTestsXml) => {
 	let testFilters;
-	if (language === 'NODEJS') {
+	if (language === 'NODEJS' || language === 'RUBY') {
 		testFilters = queryXmlFile(allTestsXml, '//testcase/@name')
 		testFilters = testFilters
 			.filter(x => !x.includes('" hook '))
@@ -37,9 +37,37 @@ const generateAndLinkToCloverReports = async (baseDir, allTestsXml) => {
 		testFilters = xunitNames.map((name, idx) => `${xunitClassNames[idx]} and ${name}`)
 	}
 
+	// Ruby: remove common prefixes between test filters
+	if (language === 'RUBY') {
+		let rubyRemovedStrings = [];
+		for (let i = 0; i < testFilters.length - 1; i++) {
+			const wordsA = testFilters[i].split(' ');
+			const wordsB = testFilters[i+1].split(' ');
+
+			let commonWords = 0;
+			while (wordsA[commonWords] == wordsB[commonWords]) { commonWords += 1; }
+
+			const removedPrefix = wordsA.slice(0, commonWords).join(' ');
+			if (removedPrefix && !rubyRemovedStrings.includes(removedPrefix)) {
+				rubyRemovedStrings.push(removedPrefix);
+			}
+		}
+
+		testFilters = testFilters.map(filter => {
+			rubyRemovedStrings.forEach(removed => {
+				filter = filter.replace(removed + ' ', '');
+			})
+			return filter;
+		})
+	}
+
 	let testFilterDirs = testFilters.map(x => slugify(x).toLowerCase())
-	for (const bannedChar of [/:/g, /\'/g, /"/g]) {
+	for (const bannedChar of [/:/g, /\'/g, /"/g, /!/g]) {
 		testFilterDirs = testFilterDirs.map(dir => dir.replace(bannedChar, ''));
+	}
+
+	if (language === 'RUBY' && !process.env.RUBY_REPO_DIR) {
+		console.log(`${chalk.yellow.bold('WARN')} Set ${chalk.bold('RUBY_REPO_DIR')} before running these commands.`)
 	}
 
 	let covCmds = []
@@ -49,10 +77,12 @@ const generateAndLinkToCloverReports = async (baseDir, allTestsXml) => {
 			//continue;
 		}
 
+		const coverageDir = `test-${testFilterDirs[i]}`;
 		if (language === 'NODEJS') {
 			covCmds.push(`${chalk.red.bold('nyc')} --all --reporter=clover --report-dir="test-${testFilterDirs[i]}" ${chalk.green.bold('mocha')} --grep "${testFilters[i]}" --timeout 20000 --exit`);
+		} else if (language === 'RUBY') {
+			covCmds.push(`bundle exec "${chalk.red.bold('rspec')} --require=\"$RUBY_REPO_DIR/spec/helpers.rb\" spec/*.rb -e \\"${testFilters[i]}\\"" && ${chalk.green.bold('mkdir')} ${coverageDir} && sleep 5 && ${chalk.green.bold('mv')} coverage/coverage.xml ${coverageDir}/clover.xml`);
 		} else if (language === 'PYTHON') {
-			const coverageDir = `test-${testFilterDirs[i]}`;
 			covCmds.push(`${chalk.red.bold('pytest')} --cov=. --cov-report xml -k "${testFilters[i]}" && ${chalk.green.bold('mkdir')} ${coverageDir} && sleep 5 && ${chalk.green.bold('mv')} coverage.xml ${coverageDir}/clover.xml`)
 		}
 	}
@@ -90,7 +120,7 @@ const _findCoveredCodeLines = (sourcePath, cloverReportPath) => {
 	let cloverLineSelector;
 	if (language === 'NODEJS') {
 		cloverLineSelector = '//line[not(@count = \'0\')]/@num';
-	} else if (language === 'PYTHON') {
+	} else if (language === 'PYTHON' || language == 'RUBY') {
 		cloverLineSelector = `//class[@filename = '${path.basename(sourcePath)}']//line[not(@hits = '0')]/@number`;
 	}
 	const cloverLines = queryXmlFile(cloverReportPath, cloverLineSelector).map(x => parseInt(x))
@@ -127,21 +157,24 @@ const _findRegionTagsAndRanges = (sourcePath) => {
 
 	// Identify + delete (obvious) "helper method" region tags
 	// (Helper method detection is imperfect, and relies on optional per-language idioms)
-	regionTagsAndRanges = regionTagsAndRanges.filter(tagAndRange => {
-		const range = Object.values(tagAndRange)[0]
-		const rangeLines = sourceLines.slice(range[0], range[1])
+	if (language === 'PYTHON' || language === 'NODEJS') {
+		regionTagsAndRanges = regionTagsAndRanges.filter(tagAndRange => {
+			const range = Object.values(tagAndRange)[0]
+			const rangeLines = sourceLines.slice(range[0], range[1])
 
-		// Return TRUE if range contains an actual snippet (and not just snippet helper methods)
-		return rangeLines.some(line => {
-			if (language === 'NODEJS' && line.startsWith('exports')) {
-				return true
-			} else if (language === 'PYTHON' && line.match(/\s*def/) && !line.match(/\s*def\s_/)) {
-				return true
-			} else {
-				return false
-			}
+			// Return TRUE if range contains an actual snippet (and not just snippet helper methods)
+			return rangeLines.some(line => {
+				console.log(line)
+				if (language === 'NODEJS' && line.startsWith('exports')) {
+					return true;
+				} else if (language === 'PYTHON' && line.match(/\s*def/) && !line.match(/\s*def\s_/)) {
+					return true;
+				} else {
+					return false;
+				}
+			})
 		})
-	})
+	}
 
 	return regionTagsAndRanges
 }
@@ -150,12 +183,19 @@ const getRegionTagsForTest = (baseDir, cloverReportPath) => {
 	let cloverSelector;
 	if (language === 'NODEJS') {
 		cloverSelector = '//file/@path';
-	} else if (language === 'PYTHON') {
-		cloverSelector = '//class/@filename'
+	} else if (language === 'PYTHON' || language === 'RUBY') {
+		cloverSelector = '//class/@filename';
 	}
 
-	let sourcePath = queryXmlFile(cloverReportPath, cloverSelector).filter(x => !x.includes('loadable') && !x.includes('_test'))[0];
+	let testFileMarker; // no-op: "string".includes(null) -> false
 	if (language === 'PYTHON') {
+		testFileMarker = '_test.py';
+	} else if (language === 'RUBY') {
+		testFileMarker = '_spec.rb';
+	}
+
+	let sourcePath = queryXmlFile(cloverReportPath, cloverSelector).filter(x => !x.includes('loadable') && !x.includes(testFileMarker))[0];
+	if (language === 'PYTHON' || language === 'RUBY') {
 		sourcePath = path.join(baseDir, sourcePath.split('/').slice(-1)[0]);
 	}
 
@@ -163,6 +203,9 @@ const getRegionTagsForTest = (baseDir, cloverReportPath) => {
 
 	const coveredCodeLines = _findCoveredCodeLines(sourcePath, cloverReportPath);
 	const regionTagsAndRanges = _findRegionTagsAndRanges(sourcePath)
+
+	console.log(`CCL`, coveredCodeLines)
+	console.log(`RTAR`, regionTagsAndRanges)
 
 	const hitRegionTags = regionTagsAndRanges.filter(tagAndRange => {
 		const tag = Object.keys(tagAndRange)[0]
@@ -182,19 +225,33 @@ const _grep = async (term, path) => {
 
 const __numSpaces = (x) => (x.match(/^\s+/g) || [''])[0].length;
 
-const _findClosingParenthesis = (sourceLines, startLineNum) => {
+const _findClosingLine = (sourceLines, startLineNum) => {
 	const startLine = sourceLines[startLineNum - 1];
 
+	let bracket;
+	if (language === 'NODEJS') {
+		bracket = "});"
+	} else if (language === 'RUBY') {
+		bracket = 'end'
+	}
+
 	return _getMatchingLineNums(sourceLines, (line, lineNum) => {
-		return line.endsWith('});') && startLineNum < lineNum && __numSpaces(line) === __numSpaces(startLine)
+		return line.endsWith(bracket) && startLineNum < lineNum && __numSpaces(line) === __numSpaces(startLine)
 	}).sort((x, y) => x - y)[0]
 }
 
-const _findPrecedingParenthesis = (sourceLines, startLineNum) => {
+const _findPrecedingLine = (sourceLines, startLineNum) => {
 	const startLine = sourceLines[startLineNum - 1];
 
+	let bracket;
+	if (language === 'NODEJS') {
+		bracket = "});"
+	} else if (language === 'RUBY') {
+		bracket = 'end'
+	}
+
 	const lineNums = _getMatchingLineNums(sourceLines, (line, lineNum) => {
-		return line.endsWith('});') && startLineNum > lineNum && __numSpaces(line) === __numSpaces(startLine)
+		return line.endsWith(bracket) && startLineNum > lineNum && __numSpaces(line) === __numSpaces(startLine)
 	}).sort((x, y) => x - y);
 	return lineNums[lineNums.length - 1];
 }
@@ -208,6 +265,8 @@ const wrapIndividualTestInRegionTag = async (testPath, testFilterName, cloverRep
 		regionTagStartLine =`describe('${regionTag}', () => {`;
 	} else if (language === 'PYTHON') {
 		regionTagStartLine = `class Test${camelcase(regionTag, {pascalCase: true})}():`;
+	} else if (language === 'RUBY') {
+		regionTagStartLine =`describe "${regionTag}" do`;
 	}
 
 	const testStartLineNum = _getMatchingLineNums(testLines, line => line.includes(testFilterName))[0]
@@ -219,6 +278,8 @@ const wrapIndividualTestInRegionTag = async (testPath, testFilterName, cloverRep
 		regionTagDescriptorRegex = /(describe|it)\(/;
 	} else if (language === 'PYTHON') {
 		regionTagDescriptorRegex = '/class/\s'
+	} else if (language === 'RUBY') {
+		regionTagDescriptorRegex = /describe\s/;
 	}
 	
 	let regionTagLine = testStartLineNum - 2;
@@ -229,10 +290,17 @@ const wrapIndividualTestInRegionTag = async (testPath, testFilterName, cloverRep
 		regionTagLine -= 1;
 	}
 
-	if (language === 'NODEJS') {
+	if (language === 'NODEJS' || language === 'RUBY') {
 		// Add end line (closing brackets)
-		const testEndLine = _findClosingParenthesis(testLines, testStartLineNum)
-		testLines.splice(testEndLine, 0, `});`)
+		let closingBracket;
+		if (language === 'NODEJS') {
+			closingBracket = '});'
+		} else if (language === 'RUBY') {
+			closingBracket = 'end'
+		}
+
+		const testEndLine = _findClosingLine(testLines, testStartLineNum)
+		testLines.splice(testEndLine, 0, closingBracket)
 
 		// Add start line (describe(...)) if necessary
 		testLines.splice(testStartLineNum - 1, 0, regionTagStartLine)
@@ -299,13 +367,14 @@ const generateTestList = async (baseDir) => {
 	if (language == 'NODEJS') {
 		await execPromise(`mocha --reporter xunit > all-tests.xml`, {cwd: baseDir});
 	} else if (language === 'PYTHON') {
-		await execPromise(`pytest --junitxml=all-tests.xml --cov=. --cov-report xml`, {cwd: baseDir});
+		await execPromise(`pip install -r requirements.txt && pytest --junitxml=all-tests.xml --cov=. --cov-report xml`, {cwd: baseDir});
+	} else if (language === 'RUBY') {
+		await execPromise(`bundle exec "rspec --format RspecJunitFormatter --out all-tests.xml"`, {cwd: baseDir});
 	}
 }
 
 // ASSUMPTION: all repeats of a region tag are contiguous
 const perDirMain = async (baseDir) => {
-	console.log(`--------------------`)
 	const allTestsXml = path.join(baseDir, 'all-tests.xml')
 	if (!fs.existsSync(allTestsXml)) {
 		console.log(`Generating test list in: ${baseDir}`);
@@ -319,7 +388,7 @@ const perDirMain = async (baseDir) => {
 	const testPaths = [];
 
 	// Wrap region tags
-	console.log(`--------------------`)
+	console.log(`--------------------`);
 	for (let i = 0; i < testFilters.length; i++) {
 		const testRawFilter = testFilters[i];
 		const testFilterDir = testFilterDirs[i];
@@ -327,7 +396,7 @@ const perDirMain = async (baseDir) => {
 		const cloverReportPath = path.join(baseDir, `test-${testFilterDir}/clover.xml`)
 
 		let tagJoinString;
-		if (language === 'NODEJS') {
+		if (language === 'NODEJS' || language === 'RUBY') {
 			tagJoinString = ' '
 		} else if (language === 'PYTHON') {
 			tagJoinString = 'And'
@@ -347,6 +416,8 @@ const perDirMain = async (baseDir) => {
 			let testPath;
 			if (language === 'NODEJS') {
 				testPath = (await _grep(testFilter, path.join(baseDir, '*est'))).filepath;
+			} else if (language === 'RUBY') {
+				testPath = (await _grep(testFilter, path.join(baseDir, '*pec'))).filepath;
 			} else if (language === 'PYTHON') {
 				testPath = path.join(baseDir, `${testRawFilter.split(' and ')[0]}.py`)
 			}
@@ -364,6 +435,20 @@ const perDirMain = async (baseDir) => {
 }
 
 const main = async (dirs) => {
+	console.log(chalk.bold('Run these commands if you need to install sub-directory dependencies'));
+	dirs.forEach(async dir => {
+		let installCmd;
+		if (language === 'NODEJS') {
+			installCmd = `${chalk.bold.green('npm')} install`;
+		} else if (language === 'PYTHON') {
+			installCmd = `${chalk.bold.green('pip')} install -r requirements.txt`;
+		} else if (language === 'RUBY') {
+			installCmd = `${chalk.bold.green('bundle')} exec`;
+		}
+		console.log(`  ${chalk.cyan.bold('cd')} ${dir} && ${installCmd}`);
+	});
+
+	console.log(`--------------------`);
 	dirs.forEach(async dir => {
 		await perDirMain(dir);
 	});
@@ -373,8 +458,12 @@ const main = async (dirs) => {
 // Generate dir list:
 //   find "$(pwd -P)" -type d -name test -not -path "*/node_modules/*" -exec dirname {} \; | awk '{print "\""$0"\","}'
 // Find empty 'all-tests.xml' files (generated by mocha failures):
-//   Node.js: find "$(pwd -P)" -type d -name test -not -path "*/node_modules/*" -exec dirname {} \; | awk '{print "\""$0"\","}' | sort
-//   Python: find "$(pwd -P)" -type f -name "*test.py" -exec dirname {} \; | awk '{print "\""$0"\","}' | sort | uniq
+//   Node.js
+//     find "$(pwd -P)" -type d -name test -not -path "*/node_modules/*" -exec dirname {} \; | awk '{print "\""$0"\","}' | sort
+//   Python
+//     find "$(pwd -P)" -type f -name "*test.py" -exec dirname {} \; | awk '{print "\""$0"\","}' | sort | uniq
+//   Ruby
+//     find "$(pwd -P)" -type f -name "Gemfile" -exec dirname {} \; | awk '{print "\""$0"\","}' | sort | uniq
 // Find bad code-coverage files (fix: rerun the tests):
 //   grep -L -e "count=\"[2-9]\"" **/clover.xml
 // Find mismatched region tags (between tests and sample code):
