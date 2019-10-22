@@ -13,9 +13,6 @@ const execPromise = require('child-process-promise').exec;
 const chalk = require('chalk');
 const camelcase = require('camelcase');
 
-// const language = 'NODEJS';
-const language = 'RUBY'; // Set to one of 'RUBY', 'NODEJS', ot 'PYTHON' (case sensitive)
-
 const queryXmlFile = (filename, xpath) => {
 	const fileContents = fs.readFileSync(filename, 'utf-8');
 	const doc = new DOMParser().parseFromString(fileContents)    
@@ -24,7 +21,7 @@ const queryXmlFile = (filename, xpath) => {
 }
 
 // Constants
-const generateAndLinkToCloverReports = async (baseDir, allTestsXml) => {
+const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) => {
 	let testFilters;
 	if (language === 'NODEJS' || language === 'RUBY') {
 		testFilters = queryXmlFile(allTestsXml, '//testcase/@name')
@@ -111,7 +108,7 @@ const _getMatchingLineNums = (sourceLines, predicate) => {
 				  .sort((x, y) => x - y);
 }
 
-const _findCoveredCodeLines = (sourcePath, cloverReportPath) => {
+const _findCoveredCodeLines = (language, sourcePath, cloverReportPath) => {
 	// Find valid code lines (non-top-level ones)
 	const sourceLines = fs.readFileSync(sourcePath, 'utf-8').split('\n');
 	const sourceLineNums = _getMatchingLineNums(sourceLines, line => line.startsWith('  '))
@@ -137,7 +134,7 @@ const _findCoveredCodeLines = (sourcePath, cloverReportPath) => {
 	return coveredCodeLines;
 }
 
-const _findRegionTagsAndRanges = (sourcePath) => {
+const _findRegionTagsAndRanges = (language, sourcePath) => {
 	const sourceLines = fs.readFileSync(sourcePath, 'utf-8').split('\n');
 
 	// Find region tag blocks
@@ -164,7 +161,6 @@ const _findRegionTagsAndRanges = (sourcePath) => {
 
 			// Return TRUE if range contains an actual snippet (and not just snippet helper methods)
 			return rangeLines.some(line => {
-				console.log(line)
 				if (language === 'NODEJS' && line.startsWith('exports')) {
 					return true;
 				} else if (language === 'PYTHON' && line.match(/\s*def/) && !line.match(/\s*def\s_/)) {
@@ -179,7 +175,7 @@ const _findRegionTagsAndRanges = (sourcePath) => {
 	return regionTagsAndRanges
 }
 
-const getRegionTagsForTest = (baseDir, cloverReportPath) => {
+const getRegionTagsForTest = (language, baseDir, cloverReportPath) => {
 	let cloverSelector;
 	if (language === 'NODEJS') {
 		cloverSelector = '//file/@path';
@@ -201,8 +197,8 @@ const getRegionTagsForTest = (baseDir, cloverReportPath) => {
 
 	const sourceLines = fs.readFileSync(sourcePath, 'utf-8').split('\n');
 
-	const coveredCodeLines = _findCoveredCodeLines(sourcePath, cloverReportPath);
-	const regionTagsAndRanges = _findRegionTagsAndRanges(sourcePath)
+	const coveredCodeLines = _findCoveredCodeLines(language, sourcePath, cloverReportPath);
+	const regionTagsAndRanges = _findRegionTagsAndRanges(language, sourcePath)
 
 	const hitRegionTags = regionTagsAndRanges.filter(tagAndRange => {
 		const tag = Object.keys(tagAndRange)[0]
@@ -222,7 +218,7 @@ const _grep = async (term, path) => {
 
 const __numSpaces = (x) => (x.match(/^\s+/g) || [''])[0].length;
 
-const _findClosingLine = (sourceLines, startLineNum) => {
+const _findClosingLine = (language, sourceLines, startLineNum) => {
 	const startLine = sourceLines[startLineNum - 1];
 
 	let bracket;
@@ -237,7 +233,7 @@ const _findClosingLine = (sourceLines, startLineNum) => {
 	}).sort((x, y) => x - y)[0]
 }
 
-const _findPrecedingLine = (sourceLines, startLineNum) => {
+const _findPrecedingLine = (language, sourceLines, startLineNum) => {
 	const startLine = sourceLines[startLineNum - 1];
 
 	let bracket;
@@ -253,7 +249,7 @@ const _findPrecedingLine = (sourceLines, startLineNum) => {
 	return lineNums[lineNums.length - 1];
 }
 
-const wrapIndividualTestInRegionTag = async (testPath, testFilterName, cloverReportPath, regionTag) => {
+const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName, cloverReportPath, regionTag) => {
 	const testLines = fs.readFileSync(testPath, 'utf-8').split('\n');
 
 	// Detect test starting line (and check for existing region tag)
@@ -296,7 +292,7 @@ const wrapIndividualTestInRegionTag = async (testPath, testFilterName, cloverRep
 			closingBracket = 'end'
 		}
 
-		const testEndLine = _findClosingLine(testLines, testStartLineNum)
+		const testEndLine = _findClosingLine(language, testLines, testStartLineNum)
 		testLines.splice(testEndLine, 0, closingBracket)
 
 		// Add start line (describe(...)) if necessary
@@ -333,11 +329,11 @@ const wrapIndividualTestInRegionTag = async (testPath, testFilterName, cloverRep
 	fs.writeFileSync(testPath, output);
 }
 
-const dedupeRegionTags = async (testFile) => {
+const dedupeRegionTags = async (language, testFile) => {
 	const DUPLICATE_LINE_STR = 'DUPLICATE_PLEASE_REMOVE_ME'
 	let regionTagDescriptorRegex;
 	if (language === 'NODEJS') {
-		regionTagDescriptorRegex = /(describe|it)\(/;
+		regionTagDescriptorRegex = /describe\(/;
 	} else if (language === 'PYTHON') {
 		regionTagDescriptorRegex = /^class\s.+\(\)/
 	}
@@ -362,12 +358,23 @@ const dedupeRegionTags = async (testFile) => {
 
 const generateTestList = async (baseDir) => {
 	if (language == 'NODEJS') {
-		await execPromise(`mocha --reporter xunit > all-tests.xml`, {cwd: baseDir});
+		await execPromise(`mocha --reporter xunit --timeout 30s --exit --reporter-option="output=all-tests.xml"`, {cwd: baseDir});
 	} else if (language === 'PYTHON') {
 		await execPromise(`pip install -r requirements.txt && pytest --junitxml=all-tests.xml --cov=. --cov-report xml`, {cwd: baseDir});
 	} else if (language === 'RUBY') {
 		await execPromise(`bundle exec "rspec --format RspecJunitFormatter --out all-tests.xml"`, {cwd: baseDir});
 	}
+}
+
+const _getLanguageForDirectory = (dir) => {
+	for (const lang of ['NODEJS', 'PYTHON', 'RUBY', 'PHP']) {
+		if (dir.toUpperCase().includes(lang)) {
+			return lang;
+		}
+	}
+
+	// No match
+	return null;
 }
 
 // ASSUMPTION: all repeats of a region tag are contiguous
@@ -379,8 +386,15 @@ const perDirMain = async (baseDir) => {
 		return;
 	}
 
-	console.log(`Generating Clover reports in: ${chalk.bold(baseDir)}`)
-	const {testFilters, testFilterDirs} = await generateAndLinkToCloverReports(baseDir, allTestsXml);
+	// Auto-detect language
+	const language = _getLanguageForDirectory(baseDir)
+	if (!language) {
+		console.log(`${chalk.red('ERR')} Language auto-detection failed for directory: ${baseDir}`);
+		return
+	}
+
+	console.log(`Generating Clover reports in: ${chalk.bold(baseDir)} (${chalk.cyan('language')}: ${chalk.bold(language)})`)
+	const {testFilters, testFilterDirs} = await generateAndLinkToCloverReports(language, baseDir, allTestsXml);
 
 	const testPaths = [];
 
@@ -399,7 +413,7 @@ const perDirMain = async (baseDir) => {
 			tagJoinString = 'And'
 		}
 
-		const tags = await getRegionTagsForTest(baseDir, cloverReportPath)
+		const tags = await getRegionTagsForTest(language, baseDir, cloverReportPath)
 		let tagString = uniq(tags.map(tag => Object.keys(tag)[0]).sort()).join(tagJoinString)
 
 		if (tags.length != 0) {
@@ -419,7 +433,7 @@ const perDirMain = async (baseDir) => {
 				testPath = path.join(baseDir, `${testRawFilter.split(' and ')[0]}.py`)
 			}
 
-			await wrapIndividualTestInRegionTag(testPath, testFilter, cloverReportPath, tagString)
+			await wrapIndividualTestInRegionTag(language, testPath, testFilter, cloverReportPath, tagString)
 
 			if (!testPaths.includes(testPath)) {
 				testPaths.push(testPath)
@@ -428,13 +442,14 @@ const perDirMain = async (baseDir) => {
 	}
 
 	console.log(chalk.bold('--- De-duping region tags ---'));
-	testPaths.forEach(path => dedupeRegionTags(path));
+	testPaths.forEach(path => dedupeRegionTags(language, path));
 }
 
 const main = async (dirs) => {
 	console.log(chalk.bold('Run these commands if you need to install sub-directory dependencies'));
 	dirs.forEach(async dir => {
 		let installCmd;
+		const language = _getLanguageForDirectory(dir);
 		if (language === 'NODEJS') {
 			installCmd = `${chalk.bold.green('npm')} install`;
 		} else if (language === 'PYTHON') {
@@ -453,8 +468,6 @@ const main = async (dirs) => {
 
 // --- HELPFUL BASH COMMANDS ---
 // Generate dir list:
-//   find "$(pwd -P)" -type d -name test -not -path "*/node_modules/*" -exec dirname {} \; | awk '{print "\""$0"\","}'
-// Find empty 'all-tests.xml' files (generated by mocha failures):
 //   Node.js
 //     find "$(pwd -P)" -type d -name test -not -path "*/node_modules/*" -exec dirname {} \; | awk '{print "\""$0"\","}' | sort
 //   Python
