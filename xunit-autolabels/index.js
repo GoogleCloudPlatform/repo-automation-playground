@@ -342,6 +342,7 @@ const dedupeRegionTags = async (language, testFile) => {
 	const regionTagLineNums = _getMatchingLineNums(testLines, line => line.match(regionTagDescriptorRegex))
 
 	// Remove any region tag line that matches the previous region tag line
+	// ASSUMPTION: all repeats of a region tag are contiguous
 	let duplicateTagLines = [];
 	for (let i = 1; i < regionTagLineNums.length; i++) {
 		if (testLines[regionTagLineNums[i] - 1] === testLines[regionTagLineNums[i-1] - 1]) {
@@ -356,13 +357,15 @@ const dedupeRegionTags = async (language, testFile) => {
 	fs.writeFileSync(testFile, testLines.join('\n'));
 };
 
-const generateTestList = async (baseDir) => {
+const generateTestList = async (language, baseDir) => {
 	if (language == 'NODEJS') {
 		await execPromise(`mocha --reporter xunit --timeout 30s --exit --reporter-option="output=all-tests.xml"`, {cwd: baseDir});
 	} else if (language === 'PYTHON') {
-		await execPromise(`pip install -r requirements.txt && pytest --junitxml=all-tests.xml --cov=. --cov-report xml`, {cwd: baseDir});
+		await execPromise(`pytest --junitxml=all-tests.xml --cov=. --cov-report xml`, {cwd: baseDir});
 	} else if (language === 'RUBY') {
 		await execPromise(`bundle exec "rspec --format RspecJunitFormatter --out all-tests.xml"`, {cwd: baseDir});
+	} else if (language === 'PHP') {
+		await execPromise(`~/.composer/vendor/bin/phpunit ${baseDir}/test --verbose --log-junit ${baseDir}/all-tests.xml`, {cwd: path.dirname(baseDir)});
 	}
 }
 
@@ -377,20 +380,19 @@ const _getLanguageForDirectory = (dir) => {
 	return null;
 }
 
-// ASSUMPTION: all repeats of a region tag are contiguous
 const perDirMain = async (baseDir) => {
-	const allTestsXml = path.join(baseDir, 'all-tests.xml')
-	if (!fs.existsSync(allTestsXml)) {
-		console.log(`Generating test list in: ${baseDir}`);
-		await generateTestList(baseDir);
-		return;
-	}
-
 	// Auto-detect language
 	const language = _getLanguageForDirectory(baseDir)
 	if (!language) {
 		console.log(`${chalk.red('ERR')} Language auto-detection failed for directory: ${baseDir}`);
 		return
+	}
+
+	const allTestsXml = path.join(baseDir, 'all-tests.xml')
+	if (!fs.existsSync(allTestsXml)) {
+		console.log(`Generating test list in: ${baseDir}`);
+		await generateTestList(language, baseDir);
+		return;
 	}
 
 	console.log(`Generating Clover reports in: ${chalk.bold(baseDir)} (${chalk.cyan('language')}: ${chalk.bold(language)})`)
@@ -456,6 +458,8 @@ const main = async (dirs) => {
 			installCmd = `${chalk.bold.green('pip')} install -r requirements.txt`;
 		} else if (language === 'RUBY') {
 			installCmd = `${chalk.bold.green('bundle')} exec`;
+		} else if (language === 'PHP') {
+			installCmd = `${chalk.bold.green('composer')} install`;
 		}
 		console.log(`  ${chalk.cyan.bold('cd')} ${dir} && ${installCmd}`);
 	});
@@ -474,6 +478,8 @@ const main = async (dirs) => {
 //     find "$(pwd -P)" -type f -name "*test.py" -exec dirname {} \; | awk '{print "\""$0"\","}' | sort | uniq
 //   Ruby
 //     find "$(pwd -P)" -type f -name "Gemfile" -exec dirname {} \; | awk '{print "\""$0"\","}' | sort | uniq
+//   PHP
+//     find "$(pwd -P)" -type f -name "*Test.php" -not -path "*/vendor/*" -exec dirname {} \; | xargs -I{} dirname {} | awk '{print "\""$0"\","}' | sort | uniq
 // Find bad code-coverage files (fix: rerun the tests):
 //   grep -L -e "count=\"[2-9]\"" **/clover.xml
 // Find mismatched region tags (between tests and sample code):
