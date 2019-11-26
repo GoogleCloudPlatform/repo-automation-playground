@@ -168,8 +168,6 @@ const _findRegionTagsAndRanges = (language, sourcePath) => {
 	// Ignore common (useless) region tag names
 	regionTagsAndRanges = regionTagsAndRanges.filter(tagAndRange => !['app'].includes(Object.keys(tagAndRange)[0]));
 
-	console.log('R/T Z', regionTagsAndRanges)
-
 	// Identify + delete (obvious) "helper method" region tags
 	// (Helper method detection is imperfect, and relies on optional per-language idioms)
 	if (language === 'PYTHON' || language === 'NODEJS') {
