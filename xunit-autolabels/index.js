@@ -142,7 +142,20 @@ const _findRegionTagsAndRanges = (language, sourcePath) => {
 	let endRegionTagLines = _getMatchingLineNums(sourceLines, line => line.includes('[END '))
 
 	// Map region tags to method invocations
-	const regionTagRanges = startRegionTagLines.map((start, idx) => [start, endRegionTagLines[idx]]);
+	const regionTagRanges = startRegionTagLines.map(startLine => {
+		let tag = sourceLines[startLine - 1]
+		tag = tag.substring(tag.indexOf('START') + 6).replace(']', '')
+
+		let endLine = endRegionTagLines.filter(endLine => {
+			return startLine < endLine && sourceLines[endLine - 1].endsWith(tag + ']')
+		})[0];
+
+		if (!endLine) {
+			console.log(`${chalk.red.bold('WARNING')} unclosed region tag (report to sample owner): ${chalk.bold(tag)}`)
+		}
+
+		return [startLine, endLine];
+	});
 	let regionTagsAndRanges = regionTagRanges.map(range => {
 		let tag = sourceLines[range[0] - 1]
 		tag = tag.substring(tag.indexOf('START') + 6).replace(']', '')
@@ -151,6 +164,11 @@ const _findRegionTagsAndRanges = (language, sourcePath) => {
 		out[tag] = range;
 		return out;
 	});
+
+	// Ignore common (useless) region tag names
+	regionTagsAndRanges = regionTagsAndRanges.filter(tagAndRange => !['app'].includes(Object.keys(tagAndRange)[0]));
+
+	console.log('R/T Z', regionTagsAndRanges)
 
 	// Identify + delete (obvious) "helper method" region tags
 	// (Helper method detection is imperfect, and relies on optional per-language idioms)
@@ -161,7 +179,7 @@ const _findRegionTagsAndRanges = (language, sourcePath) => {
 
 			// Return TRUE if range contains an actual snippet (and not just snippet helper methods)
 			return rangeLines.some(line => {
-				if (language === 'NODEJS' && line.startsWith('exports')) {
+				if (language === 'NODEJS' && (line.startsWith('exports.') || (line.startsWith('app.') && line.includes('(req,')))) {
 					return true;
 				} else if (language === 'PYTHON' && line.match(/\s*def/) && !line.match(/\s*def\s_/)) {
 					return true;
