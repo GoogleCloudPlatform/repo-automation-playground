@@ -315,6 +315,10 @@ const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName,
 		testLines.splice(testStartLineNum - 1, 0, regionTagStartLine)
 
 	} else if (language === 'PYTHON') {
+		// Ignore decorators
+		while testLines[testStartLineNum - 1].match(/@\w/g)
+			testStartLineNum -= 1
+
 		// Add 'self' param to 'def' statements
 		const defLine = testLines[testStartLineNum - 1]
 		if (!defLine.includes('self')) {
