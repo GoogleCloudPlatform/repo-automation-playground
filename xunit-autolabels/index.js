@@ -306,7 +306,10 @@ const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName,
 	let regionTagLine = testStartLineNum - 2;
 	const testBlockSpaces = __numSpaces(testStartLine);
 	while (regionTagLine > 0 &&
-			(testLines[regionTagLine].match(regionTagDescriptorRegex) || testBlockSpaces <= __numSpaces(testLines[regionTagLine]))) {
+				(!testLines[regionTagLine].length ||
+				testLines[regionTagLine].match(regionTagDescriptorRegex) ||
+				testBlockSpaces <= __numSpaces(testLines[regionTagLine]))
+	) {
 		if (testLines[regionTagLine].endsWith(regionTagStartLine)) {
 			console.log(`    ${chalk.yellow.bold('INFO')} Region tag already present, skipping.`);
 			return; // Desired region tag already present
@@ -550,7 +553,7 @@ const main = async (dirs) => {
 // Find duplicate region tag `describe`s in a file
 //   grep describe\( *.js | perl -pe 's/^[[:space:]]+//g' | sort | uniq -d
 const dirs = [
-	"/Users/anassri/Desktop/nodejs-docs-samples/appengine/building-an-app/update"
+	"YOUR_DIRS_HERE"
 ]
 main(dirs);
 
