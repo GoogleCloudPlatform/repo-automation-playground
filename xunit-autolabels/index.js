@@ -32,6 +32,10 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 		const xunitNames = queryXmlFile(allTestsXml, '//testcase/@name')
 		const xunitClassNames = queryXmlFile(allTestsXml, '//testcase/@classname').map(x => x.split('.').slice(-1)[0])
 		testFilters = xunitNames.map((name, idx) => `${xunitClassNames[idx]} and ${name}`)
+	} else if (language === 'PHP') {
+		const xunitNames = queryXmlFile(allTestsXml, '//testcase/@name')
+		const xunitClassNames = queryXmlFile(allTestsXml, '//testcase/@class')
+		testFilters = xunitNames.map((name, idx) => `${name} ${xunitClassNames[idx]}`)
 	}
 
 	// Ruby: remove common prefixes between test filters
@@ -58,7 +62,7 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 		})
 	}
 
-	let testFilterDirs = testFilters.map(x => slugify(x).toLowerCase())
+	let testFilterDirs = testFilters.map(x => slugify(x.replace(/\W+/g, ' ')).toLowerCase())
 	for (const bannedChar of [/:/g, /\'/g, /"/g, /!/g]) {
 		testFilterDirs = testFilterDirs.map(dir => dir.replace(bannedChar, ''));
 	}
@@ -81,6 +85,8 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 			covCmds.push(`bundle exec "${chalk.red.bold('rspec')} --require=\"$RUBY_REPO_DIR/spec/helpers.rb\" spec/*.rb -e \\"${testFilters[i]}\\"" && ${chalk.green.bold('mkdir')} ${coverageDir} && sleep 5 && ${chalk.green.bold('mv')} coverage/coverage.xml ${coverageDir}/clover.xml`);
 		} else if (language === 'PYTHON') {
 			covCmds.push(`${chalk.red.bold('pytest')} --cov=. --cov-report xml -k "${testFilters[i]}" && ${chalk.green.bold('mkdir')} ${coverageDir} && sleep 5 && ${chalk.green.bold('mv')} coverage.xml ${coverageDir}/clover.xml`)
+		} else if (language === 'PHP') {
+			covCmds.push(`${chalk.red.bold('phpunit')} --verbose --coverage clover coverage.xml --filter "${testFilters[i]}" && ${chalk.green.bold('mkdir')} ${coverageDir} && sleep 5 && ${chalk.green.bold('mv')} coverage.xml ${coverageDir}/clover.xml`)
 		}
 	}
 
@@ -204,6 +210,8 @@ const getRegionTagsForTest = (language, baseDir, cloverReportPath) => {
 		testFileMarker = '_test.py';
 	} else if (language === 'RUBY') {
 		testFileMarker = '_spec.rb';
+	} else if (language === 'PHP') {
+		testFileMarker = 'Test.php'
 	}
 
 	let sourcePath = queryXmlFile(cloverReportPath, cloverSelector).filter(x => !x.includes('loadable') && !x.includes(testFileMarker))[0];
@@ -215,6 +223,10 @@ const getRegionTagsForTest = (language, baseDir, cloverReportPath) => {
 
 	const coveredCodeLines = _findCoveredCodeLines(language, sourcePath, cloverReportPath);
 	const regionTagsAndRanges = _findRegionTagsAndRanges(language, sourcePath)
+
+	if (regionTagsAndRanges.length === 0) {
+		console.log(`${chalk.red.bold('WARNING')} source file ${chalk.bold(sourcePath)} has no region tags!`);
+	}
 
 	const hitRegionTags = regionTagsAndRanges.filter(tagAndRange => {
 		const tag = Object.keys(tagAndRange)[0]
@@ -292,8 +304,11 @@ const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName,
 	}
 	
 	let regionTagLine = testStartLineNum - 2;
-	while (regionTagLine > 0 && testLines[regionTagLine].match(regionTagDescriptorRegex)) {
+	const testBlockSpaces = __numSpaces(testStartLine);
+	while (regionTagLine > 0 &&
+			(testLines[regionTagLine].match(regionTagDescriptorRegex) || testBlockSpaces <= __numSpaces(testLines[regionTagLine]))) {
 		if (testLines[regionTagLine].endsWith(regionTagStartLine)) {
+			console.log(`    ${chalk.yellow.bold('INFO')} Region tag already present, skipping.`);
 			return; // Desired region tag already present
 		}
 		regionTagLine -= 1;
@@ -316,8 +331,9 @@ const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName,
 
 	} else if (language === 'PYTHON') {
 		// Ignore decorators
-		while testLines[testStartLineNum - 1].match(/@\w/g)
+		while (testLines[testStartLineNum - 1].match(/@\w/g)) {
 			testStartLineNum -= 1
+		}
 
 		// Add 'self' param to 'def' statements
 		const defLine = testLines[testStartLineNum - 1]
@@ -351,11 +367,13 @@ const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName,
 
 const dedupeRegionTags = async (language, testFile) => {
 	const DUPLICATE_LINE_STR = 'DUPLICATE_PLEASE_REMOVE_ME'
-	let regionTagDescriptorRegex;
+	let regionTagDescriptorRegex, regionTerminatorStr;
 	if (language === 'NODEJS') {
 		regionTagDescriptorRegex = /describe\(/;
+		regionTerminatorRegex = /\s?\}\)/;
 	} else if (language === 'PYTHON') {
 		regionTagDescriptorRegex = /^class\s.+\(\)/
+		regionTerminatorRegex = /\s+end/;
 	}
 
 	let testLines = fs.readFileSync(testFile, 'utf-8').split('\n');
@@ -369,9 +387,34 @@ const dedupeRegionTags = async (language, testFile) => {
 			duplicateTagLines.push(regionTagLineNums[i])
 		}
 	}
+
 	for (let duplicateLineNum of duplicateTagLines) {
+		const regionNumSpaces = __numSpaces(testLines[duplicateLineNum - 1]);
 		testLines[duplicateLineNum - 1] = DUPLICATE_LINE_STR;
+
+		// Remove preceding region terminator (Node / Ruby)
+		if (language === 'NODEJS' || language === 'RUBY') {
+			let terminatorLineNum;
+
+			let tempLineNum = duplicateLineNum - 1;
+			let tempLineSpaces = __numSpaces(testLines[tempLineNum]);
+
+			while (tempLineNum > 0 && tempLineSpaces >= regionNumSpaces) {
+				if (testLines[tempLineNum].match(regionTerminatorRegex) && tempLineSpaces === regionNumSpaces) {
+					terminatorLineNum = tempLineNum;
+					break;
+				}
+				tempLineNum -= 1;
+				tempLineSpaces = __numSpaces(testLines[tempLineNum]);
+			}
+
+			// Remove marked region terminator
+			if (terminatorLineNum) {
+				testLines[terminatorLineNum] = DUPLICATE_LINE_STR;
+			}
+		}
 	}
+
 	testLines = testLines.filter(x => x !== DUPLICATE_LINE_STR);
 
 	fs.writeFileSync(testFile, testLines.join('\n'));
@@ -431,7 +474,7 @@ const perDirMain = async (baseDir) => {
 		let tagJoinString;
 		if (language === 'NODEJS' || language === 'RUBY') {
 			tagJoinString = ' '
-		} else if (language === 'PYTHON') {
+		} else if (language === 'PYTHON' || language == 'PHP') {
 			tagJoinString = 'And'
 		}
 
@@ -507,7 +550,7 @@ const main = async (dirs) => {
 // Find duplicate region tag `describe`s in a file
 //   grep describe\( *.js | perl -pe 's/^[[:space:]]+//g' | sort | uniq -d
 const dirs = [
-	"YOUR_DIRS_HERE"
+	"/Users/anassri/Desktop/nodejs-docs-samples/appengine/building-an-app/update"
 ]
 main(dirs);
 
