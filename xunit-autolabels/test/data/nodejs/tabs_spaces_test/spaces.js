@@ -1,0 +1,3 @@
+exports.returnSpaces = () => {
+  return 'spaces';
+};

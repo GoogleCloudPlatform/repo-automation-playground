@@ -1,0 +1,3 @@
+exports.returnTabs = () => {
+	return 'tabs';
+};

@@ -2,6 +2,10 @@
 
 // nyc --all --reporter=lcov mocha
 
+// Import standard modules (to enable proxyquire overrides)
+const console = require('console');
+const process = require('process');
+
 const path = require('path');
 const fs = require('fs');
 const xpathJs = require('xpath.js');
@@ -15,8 +19,8 @@ const camelcase = require('camelcase');
 
 const queryXmlFile = (filename, xpath) => {
 	const fileContents = fs.readFileSync(filename, 'utf-8');
-	const doc = new DOMParser().parseFromString(fileContents)    
-	const nodes = xpathJs(doc, xpath)
+	const doc = new DOMParser().parseFromString(fileContents)
+	const nodes = xpathJs(doc, xpath).sort((a, b) => a.lineNumber - b.lineNumber || a.columnNumber - b.columnNumber); // preserve order
 	return nodes.map(n => n.value)
 }
 
@@ -28,6 +32,21 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 		testFilters = testFilters
 			.filter(x => !x.includes('" hook '))
 			.map(x => x.replace(/\"/g,'\\\"').replace(/'/,"\'"))
+
+		// Check for test filters that map to multiple tests
+		const overloadedTestFilters = testFilters
+			.map(a => {
+				return {
+					filter: a,
+					overloadedFilters: testFilters.filter(b => a.length > b.length && a.includes(b))
+				}
+			})
+			.filter(({_, overloadedFilters}) => overloadedFilters.length);
+
+		overloadedTestFilters.forEach(({filter, overloadedFilters}) => {
+			console.log(`${chalk.bold.yellow('ERR')} filter ${chalk.bold(filter)} overloads other filter(s): ${overloadedFilters}`)
+		});
+
 	} else if (language === 'PYTHON') {
 		const xunitNames = queryXmlFile(allTestsXml, '//testcase/@name')
 		const xunitClassNames = queryXmlFile(allTestsXml, '//testcase/@classname').map(x => x.split('.').slice(-1)[0])
@@ -35,7 +54,35 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 	} else if (language === 'PHP') {
 		const xunitNames = queryXmlFile(allTestsXml, '//testcase/@name')
 		const xunitClassNames = queryXmlFile(allTestsXml, '//testcase/@class')
-		testFilters = xunitNames.map((name, idx) => `${name} ${xunitClassNames[idx]}`)
+		const xunitFileNames = queryXmlFile(allTestsXml, '//testcase/@file')
+		testFilters = xunitNames.map((name, idx) => `${name} '${xunitClassNames[idx]}' ${xunitFileNames[idx]}`)
+	}
+
+	// PHP: handle @depends annotations
+	if (language === 'PHP') {
+		const xunitFileNames = queryXmlFile(allTestsXml, '//testcase/@file')
+		xunitFileNames.forEach(testFilename => {
+			let testContents = fs.readFileSync(testFilename, 'utf-8');
+			const testLines = testContents.split('\n');
+
+			// ASSUMPTION: any other tests that a test depends on will be above it in the file
+			// Breaking this assumption will result in tests being ran out-of-order
+			const dependsLines = _getMatchingLineNums(testLines, x => x.includes('@depends'));
+			dependsLines.forEach(dependsLineNum => {
+				const testName = testLines[dependsLineNum - 1].split(' ').slice(-1)[0];
+				const testLineNums = _getMatchingLineNums(testLines, x => x.includes(` ${testName}(`));
+
+				if (testLineNums.some(x => x > dependsLineNum)) {
+					console.log(`${chalk.yellow.bold('WARN')} test ${chalk.bold(testName)} in file ${chalk.italic(testFilename)} should be moved ${chalk.bold('below')} tests it @depends on.`);
+				}
+			});
+
+			// Disable @depends annotations
+			testContents = testContents
+				.replace('* @depends', '* !depends')
+				.replace('// @depends', '// !depends');
+			fs.writeFileSync(testFilename, testContents);
+		})
 	}
 
 	// Ruby: remove common prefixes between test filters
@@ -63,6 +110,10 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 	}
 
 	let testFilterDirs = testFilters.map(x => slugify(x.replace(/\W+/g, ' ')).toLowerCase())
+	if (language === 'PHP') {
+		// Shorten PHP's super-long directories
+		testFilterDirs = testFilterDirs.map(x => x.split('-').slice(0, 1).join('-'))
+	}
 	for (const bannedChar of [/:/g, /\'/g, /"/g, /!/g]) {
 		testFilterDirs = testFilterDirs.map(dir => dir.replace(bannedChar, ''));
 	}
@@ -86,7 +137,7 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 		} else if (language === 'PYTHON') {
 			covCmds.push(`${chalk.red.bold('pytest')} --cov=. --cov-report xml -k "${testFilters[i]}" && ${chalk.green.bold('mkdir')} ${coverageDir} && sleep 5 && ${chalk.green.bold('mv')} coverage.xml ${coverageDir}/clover.xml`)
 		} else if (language === 'PHP') {
-			covCmds.push(`${chalk.red.bold('phpunit')} --verbose --coverage clover coverage.xml --filter "${testFilters[i]}" && ${chalk.green.bold('mkdir')} ${coverageDir} && sleep 5 && ${chalk.green.bold('mv')} coverage.xml ${coverageDir}/clover.xml`)
+			covCmds.push(`${chalk.red.bold('../testing/vendor/bin/phpunit')} --verbose --coverage-clover "${coverageDir}/coverage.xml" -c phpunit.xml.dist ${chalk.italic.green('--filter')} ${testFilters[i]}`)
 		}
 	}
 
@@ -115,9 +166,9 @@ const _getMatchingLineNums = (sourceLines, predicate) => {
 }
 
 const _findCoveredCodeLines = (language, sourcePath, cloverReportPath) => {
-	// Find valid code lines (non-top-level ones)
+	// Find valid code lines (indented ones)
 	const sourceLines = fs.readFileSync(sourcePath, 'utf-8').split('\n');
-	const sourceLineNums = _getMatchingLineNums(sourceLines, line => line.startsWith('  '))
+	const sourceLineNums = _getMatchingLineNums(sourceLines, line => line.match(/^\s/))
 
 	// Find lines covered in Clover report
 	let cloverLineSelector;
@@ -125,10 +176,13 @@ const _findCoveredCodeLines = (language, sourcePath, cloverReportPath) => {
 		cloverLineSelector = '//line[not(@count = \'0\')]/@num';
 	} else if (language === 'PYTHON' || language == 'RUBY') {
 		cloverLineSelector = `//class[@filename = '${path.basename(sourcePath)}']//line[not(@hits = '0')]/@number`;
+	} else if (language === 'PHP') {
+		cloverLineSelector = `//file[@name = "${sourcePath}"]//line[not(@count = \'0\') and @type=\'stmt\']/@num`;
 	}
+
 	const cloverLines = queryXmlFile(cloverReportPath, cloverLineSelector).map(x => parseInt(x))
 	if (cloverLines.length == 0) {
-		console.log(chalk.red.bold('ERR') + ' Bad Clover output, ensure test passes: ' + chalk.bold(cloverReportPath));
+		console.log(`${chalk.red.bold('ERR')} Bad Clover output, ensure test passes: ${chalk.bold(cloverReportPath)}`);
 		return []
 	}
 
@@ -162,6 +216,7 @@ const _findRegionTagsAndRanges = (language, sourcePath) => {
 
 		return [startLine, endLine];
 	});
+
 	let regionTagsAndRanges = regionTagRanges.map(range => {
 		let tag = sourceLines[range[0] - 1]
 		tag = tag.substring(tag.indexOf('START') + 6).replace(']', '')
@@ -184,8 +239,10 @@ const _findRegionTagsAndRanges = (language, sourcePath) => {
 			// Return TRUE if range contains an actual snippet (and not just snippet helper methods)
 			return rangeLines.some(line => {
 				if (language === 'NODEJS' && (line.startsWith('exports.') || (line.startsWith('app.') && line.includes('(req,')))) {
+					// NODEJS: Non-helper methods must be 'export'ed OR have an HTTP-handler-like signature
 					return true;
 				} else if (language === 'PYTHON' && line.match(/\s*def/) && !line.match(/\s*def\s_/)) {
+					// PYTHON: Helper methods begin with an underscore (_)
 					return true;
 				} else {
 					return false;
@@ -197,7 +254,7 @@ const _findRegionTagsAndRanges = (language, sourcePath) => {
 	return regionTagsAndRanges
 }
 
-const getRegionTagsForTest = (language, baseDir, cloverReportPath) => {
+const getRegionTagsHitByTest = (language, baseDir, cloverReportPath) => {
 	let cloverSelector;
 	if (language === 'NODEJS') {
 		cloverSelector = '//file/@path';
@@ -214,18 +271,28 @@ const getRegionTagsForTest = (language, baseDir, cloverReportPath) => {
 		testFileMarker = 'Test.php'
 	}
 
-	let sourcePath = queryXmlFile(cloverReportPath, cloverSelector).filter(x => !x.includes('loadable') && !x.includes(testFileMarker))[0];
+	let sourcePathList = queryXmlFile(cloverReportPath, cloverSelector);
+	sourcePathList = sourcePathList.filter(x => !x.includes('loadable')); // Remove blacklisted file names
+	sourcePathList = sourcePathList.filter(x => !x.includes(testFileMarker)); // Remove non-test files
+	sourcePathList = sourcePathList.filter(x => !path.isAbsolute(x) || x.includes(baseDir)); // Remove files not in baseDir (if possible)
+
+	if (sourcePathList.length > 1) {
+		console.log(`${chalk.bold('WARN')} Multiple matching source files detected! Using ${chalk.bold(sourcePathList[0])}`)
+	}
+
+	let sourcePath = sourcePathList[0];
 	if (language === 'PYTHON' || language === 'RUBY') {
+		// Convert filenames into absolute paths
 		sourcePath = path.join(baseDir, sourcePath.split('/').slice(-1)[0]);
 	}
 
 	const sourceLines = fs.readFileSync(sourcePath, 'utf-8').split('\n');
 
 	const coveredCodeLines = _findCoveredCodeLines(language, sourcePath, cloverReportPath);
-	const regionTagsAndRanges = _findRegionTagsAndRanges(language, sourcePath)
+	const regionTagsAndRanges = _findRegionTagsAndRanges(language, sourcePath);
 
 	if (regionTagsAndRanges.length === 0) {
-		console.log(`${chalk.red.bold('WARNING')} source file ${chalk.bold(sourcePath)} has no region tags!`);
+		console.log(`${chalk.yellow.bold('WARN')} source file ${chalk.bold(sourcePath)} has no region tags!`);
 	}
 
 	const hitRegionTags = regionTagsAndRanges.filter(tagAndRange => {
@@ -246,7 +313,7 @@ const _grep = async (term, path) => {
 
 const __numSpaces = (x) => (x.match(/^\s+/g) || [''])[0].length;
 
-const _findClosingLine = (language, sourceLines, startLineNum) => {
+const _findClosingBlock = (language, sourceLines, startLineNum) => {
 	const startLine = sourceLines[startLineNum - 1];
 
 	let bracket;
@@ -254,14 +321,16 @@ const _findClosingLine = (language, sourceLines, startLineNum) => {
 		bracket = "});"
 	} else if (language === 'RUBY') {
 		bracket = 'end'
+	} else {
+		throw new Error(`Language not supported: ${language}`);
 	}
 
 	return _getMatchingLineNums(sourceLines, (line, lineNum) => {
 		return line.endsWith(bracket) && startLineNum < lineNum && __numSpaces(line) === __numSpaces(startLine)
-	}).sort((x, y) => x - y)[0]
+	}).sort((x, y) => x - y)[0] || null;
 }
 
-const _findPrecedingLine = (language, sourceLines, startLineNum) => {
+const _findPrecedingBlock = (language, sourceLines, startLineNum) => {
 	const startLine = sourceLines[startLineNum - 1];
 
 	let bracket;
@@ -269,30 +338,48 @@ const _findPrecedingLine = (language, sourceLines, startLineNum) => {
 		bracket = "});"
 	} else if (language === 'RUBY') {
 		bracket = 'end'
+	} else {
+		throw new Error(`Language not supported: ${language}`);
 	}
 
-	const lineNums = _getMatchingLineNums(sourceLines, (line, lineNum) => {
-		return line.endsWith(bracket) && startLineNum > lineNum && __numSpaces(line) === __numSpaces(startLine)
-	}).sort((x, y) => x - y);
-	return lineNums[lineNums.length - 1];
+	return _getMatchingLineNums(sourceLines, (line, lineNum) => {
+		return line.endsWith(bracket) && startLineNum > lineNum + 1 && __numSpaces(line) === __numSpaces(startLine)
+	}).sort((x, y) => y - x)[0] || null;
 }
 
-const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName, cloverReportPath, regionTag) => {
-	const testLines = fs.readFileSync(testPath, 'utf-8').split('\n');
+const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName, regionsAndTags) => {
+	const tagList = uniq(regionsAndTags.map(tag => Object.keys(tag)[0]));
+
+	let tagJoinString;
+	if (language === 'NODEJS' || language === 'RUBY') {
+		tagJoinString = ' '
+	} else if (language === 'PYTHON') {
+		tagJoinString = 'And'
+	} else if (language === 'PHP') {
+		tagJoinString = '_AND_';
+	}
+
+	const tagString = tagList.sort().join(tagJoinString)
+	let testLines = fs.readFileSync(testPath, 'utf-8').split('\n');
+
+	console.log(`  Wrapping test: ${chalk.bold.cyan(testFilterName)} --> ${chalk.bold.green(tagString)}`)
 
 	// Detect test starting line (and check for existing region tag)
 	let regionTagStartLine;
 	if (language === 'NODEJS') {
-		regionTagStartLine =`describe('${regionTag}', () => {`;
+		regionTagStartLine =`describe('${tagString}', () => {`;
 	} else if (language === 'PYTHON') {
-		regionTagStartLine = `class Test${camelcase(regionTag, {pascalCase: true})}():`;
+		regionTagStartLine = `class Test${camelcase(tagString, {pascalCase: true})}(unittest.TestCase):`;
 	} else if (language === 'RUBY') {
-		regionTagStartLine =`describe "${regionTag}" do`;
+		regionTagStartLine =`describe "${tagString}" do`;
+	} else if (language === 'PHP') {
+		regionTagStartLine = `function test_${tagString}`; // followed by 'should', 'does', or '()'
 	}
 
-	const testStartLineNum = _getMatchingLineNums(testLines, line => line.includes(testFilterName))[0]
-	const testStartLine = testLines[testStartLineNum - 1];
-
+	let testStartLineNum = _getMatchingLineNums(testLines, line => line.includes(testFilterName))[0]
+	if (!testStartLineNum) {
+		throw new Error('No matching test filter!');
+	}
 
 	let regionTagDescriptorRegex;
 	if (language === 'NODEJS') {
@@ -301,19 +388,30 @@ const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName,
 		regionTagDescriptorRegex = '/class/\s'
 	} else if (language === 'RUBY') {
 		regionTagDescriptorRegex = /describe\s/;
+	} else if (language === 'PHP') {
+		regionTagDescriptorRegex = /function\stest/
 	}
-	
-	let regionTagLine = testStartLineNum - 2;
-	const testBlockSpaces = __numSpaces(testStartLine);
+
+	let regionTagLine = testStartLineNum - 1;
+	const testBlockSpaces = __numSpaces(testLines[testStartLineNum - 1]);
 	while (regionTagLine > 0 &&
 				(!testLines[regionTagLine].length ||
 				testLines[regionTagLine].match(regionTagDescriptorRegex) ||
 				testBlockSpaces <= __numSpaces(testLines[regionTagLine]))
 	) {
+		// Exact match
 		if (testLines[regionTagLine].endsWith(regionTagStartLine)) {
-			console.log(`    ${chalk.yellow.bold('INFO')} Region tag already present, skipping.`);
+			console.log(`    ${chalk.blue('INFO')} Exact region tag already present, skipping.`);
 			return; // Desired region tag already present
 		}
+
+		// Fuzzy match
+		if (tagList.some(tag => tag.includes('_') && testLines[regionTagLine].includes(tag))) {
+			console.log(`${chalk.red.bold('ERR')} Different region tags present, ${chalk.bold('label manually!')}`);
+			console.log(`    Proposed tag: ${chalk.bold(tagString)}`);
+			return;
+		}
+
 		regionTagLine -= 1;
 	}
 
@@ -326,20 +424,26 @@ const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName,
 			closingBracket = 'end'
 		}
 
-		const testEndLine = _findClosingLine(language, testLines, testStartLineNum)
+		const testEndLine = _findClosingBlock(language, testLines, testStartLineNum)
 		testLines.splice(testEndLine, 0, closingBracket)
 
-		// Add start line (describe(...)) if necessary
+		// Add test start line (describe(...))
 		testLines.splice(testStartLineNum - 1, 0, regionTagStartLine)
 
 	} else if (language === 'PYTHON') {
-		// Ignore decorators
+		// Find 'def' line (ignoring decorators)
 		while (testLines[testStartLineNum - 1].match(/@\w/g)) {
 			testStartLineNum -= 1
 		}
+		const defLine = testLines[testStartLineNum - 1]
+
+		// Check for existing wrapping class
+		if (defLine.match(/^\s/)) {
+			console.log(`${chalk.bold.red('ERR')} Python test is already in an indented block!`)
+			return;
+		}
 
 		// Add 'self' param to 'def' statements
-		const defLine = testLines[testStartLineNum - 1]
 		if (!defLine.includes('self')) {
 			if (defLine.includes('()')) {
 				testLines[testStartLineNum - 1] = defLine.replace('()', '(self)')
@@ -348,23 +452,51 @@ const wrapIndividualTestInRegionTag = async (language, testPath, testFilterName,
 			}
 		}
 
-		// Add start line (describe(...)) if necessary
-		testLines.splice(testStartLineNum - 1, 0, regionTagStartLine)
+		// Determine affected lines' indentation settings	
+		const testStartIndentCount = __numSpaces(testLines[testStartLineNum - 1]);
+
+		const indentOffset = __numSpaces(testLines[testStartLineNum]) - __numSpaces(testLines[testStartLineNum - 1]);
+		const whitespaceChar = testLines.some(l => l.startsWith('\t')) ? '\t' : ' ';
+
+		while (testLines[testStartLineNum - 2].match(/@\w/g)) {
+			testStartLineNum -= 1 // Add decorators to indented block
+		}
+
+		// Insert region-tag line
+		testLines.splice(testStartLineNum - 1, 0, regionTagStartLine) 
 
 		// Indent affected lines
 		let i = testStartLineNum;
-		const testStartIndentCount = __numSpaces(testLines[testStartLineNum - 1]);
-		const indentOffset = __numSpaces(testLines[testStartLineNum + 1]) - __numSpaces(testLines[testStartLineNum]);
+		let withinBlock = false;
 		do {
 			if (testLines[i].length > 0) { // Ignore whitespace
-				testLines[i] = ' '.repeat(indentOffset) + testLines[i];
+				testLines[i] = whitespaceChar.repeat(indentOffset) + testLines[i];
+			}
+		
+			if (testLines[i].match(/^(class|def)/)) {
+				if (!withinBlock) {
+					withinBlock = true;
+				} else {
+					break; // after indented block
+				}
 			}
 			i += 1;
-		} while (i < testLines.length && !testLines[i].match(/^(class|def)/))
+		} while (i < testLines.length);
+	} else if (language === 'PHP') {
+		// Replace existing method name with target method name
+		testLines = testLines.map(line => line.replace(
+			`function ${testFilterName}(`, `function test_${tagString}_SHOULD_${testFilterName}(`));
 	}
 
-	// Save to file
-	const output = testLines.join('\n');
+	let output = testLines.join('\n');
+
+	// PHP: re-enable @depends annotations
+	if (language === 'PHP') {
+		output = output
+					.replace('* !depends', '* @depends')
+					.replace('// !depends', '// @depends');
+	}
+
 	fs.writeFileSync(testPath, output);
 }
 
@@ -376,14 +508,16 @@ const dedupeRegionTags = async (language, testFile) => {
 		regionTerminatorRegex = /\s?\}\)/;
 	} else if (language === 'PYTHON') {
 		regionTagDescriptorRegex = /^class\s.+\(\)/
-		regionTerminatorRegex = /\s+end/;
+	} else if (language === 'RUBY') {
+		regionTagDescriptorRegex = /describe\s/;
+		regionTerminatorRegex = /\s*end/;
 	}
 
 	let testLines = fs.readFileSync(testFile, 'utf-8').split('\n');
 	const regionTagLineNums = _getMatchingLineNums(testLines, line => line.match(regionTagDescriptorRegex))
 
-	// Remove any region tag line that matches the previous region tag line
-	// ASSUMPTION: all repeats of a region tag are contiguous
+	// Remove duplicate region tags from *contiguous* code blocks
+	// (Non-contiguous blocks will each have their own region tag label)
 	let duplicateTagLines = [];
 	for (let i = 1; i < regionTagLineNums.length; i++) {
 		if (testLines[regionTagLineNums[i] - 1] === testLines[regionTagLineNums[i-1] - 1]) {
@@ -396,18 +530,25 @@ const dedupeRegionTags = async (language, testFile) => {
 		testLines[duplicateLineNum - 1] = DUPLICATE_LINE_STR;
 
 		// Remove preceding region terminator (Node / Ruby)
+		// If no preceding terminator is present, wrap around the file and remove the succeeding one instead
 		if (language === 'NODEJS' || language === 'RUBY') {
 			let terminatorLineNum;
 
 			let tempLineNum = duplicateLineNum - 1;
 			let tempLineSpaces = __numSpaces(testLines[tempLineNum]);
 
-			while (tempLineNum > 0 && tempLineSpaces >= regionNumSpaces) {
+			while (tempLineNum != duplicateLineNum && tempLineSpaces >= regionNumSpaces) {
 				if (testLines[tempLineNum].match(regionTerminatorRegex) && tempLineSpaces === regionNumSpaces) {
 					terminatorLineNum = tempLineNum;
 					break;
 				}
+
 				tempLineNum -= 1;
+				if (tempLineNum === 0) {
+					// Wrap around if no preceding terminator found
+					tempLineNum = testLines.length - 1
+				}
+
 				tempLineSpaces = __numSpaces(testLines[tempLineNum]);
 			}
 
@@ -461,6 +602,7 @@ const perDirMain = async (baseDir) => {
 		return;
 	}
 
+
 	console.log(`Generating Clover reports in: ${chalk.bold(baseDir)} (${chalk.cyan('language')}: ${chalk.bold(language)})`)
 	const {testFilters, testFilterDirs} = await generateAndLinkToCloverReports(language, baseDir, allTestsXml);
 
@@ -473,25 +615,15 @@ const perDirMain = async (baseDir) => {
 		const testFilterDir = testFilterDirs[i];
 
 		const cloverReportPath = path.join(baseDir, `test-${testFilterDir}/clover.xml`)
+		const regionsAndTags = await getRegionTagsHitByTest(language, baseDir, cloverReportPath)
 
-		let tagJoinString;
-		if (language === 'NODEJS' || language === 'RUBY') {
-			tagJoinString = ' '
-		} else if (language === 'PYTHON' || language == 'PHP') {
-			tagJoinString = 'And'
-		}
-
-		const tags = await getRegionTagsForTest(language, baseDir, cloverReportPath)
-		let tagString = uniq(tags.map(tag => Object.keys(tag)[0]).sort()).join(tagJoinString)
-
-		if (tags.length != 0) {
+		if (regionsAndTags.length != 0) {
 			let testFilter = testRawFilter;
 			if (language === 'PYTHON') {
 				testFilter = testRawFilter.split(' and ').slice(-1)[0]
-				tagString = camelcase(tagString, {pascalCase: true});
 			}
-			console.log(`  Wrapping test: ${chalk.bold.cyan(testFilter)} --> ${chalk.bold.green(tagString)}`)
 
+			// Get path to file containing specified test
 			let testPath;
 			if (language === 'NODEJS') {
 				testPath = (await _grep(testFilter, path.join(baseDir, '*est'))).filepath;
@@ -501,7 +633,7 @@ const perDirMain = async (baseDir) => {
 				testPath = path.join(baseDir, `${testRawFilter.split(' and ')[0]}.py`)
 			}
 
-			await wrapIndividualTestInRegionTag(language, testPath, testFilter, cloverReportPath, tagString)
+			await wrapIndividualTestInRegionTag(language, testPath, testFilter, regionsAndTags)
 
 			if (!testPaths.includes(testPath)) {
 				testPaths.push(testPath)
@@ -553,7 +685,25 @@ const main = async (dirs) => {
 // Find duplicate region tag `describe`s in a file
 //   grep describe\( *.js | perl -pe 's/^[[:space:]]+//g' | sort | uniq -d
 const dirs = [
-	"YOUR_DIRS_HERE"
+	"/Users/anassri/Desktop/php-docs-samples/storage"
 ]
-main(dirs);
+
+if (require.main === module) {
+	main(dirs);
+}
+
+// Export methods (for easier testing)
+exports.generateAndLinkToCloverReports = generateAndLinkToCloverReports;
+exports.getRegionTagsHitByTest = getRegionTagsHitByTest;
+exports.wrapIndividualTestInRegionTag = wrapIndividualTestInRegionTag;
+exports.dedupeRegionTags = dedupeRegionTags;
+exports.generateTestList = generateTestList;
+exports.perDirMain = perDirMain;
+
+exports._findCoveredCodeLines = _findCoveredCodeLines;
+exports._findRegionTagsAndRanges = _findRegionTagsAndRanges;
+exports._findClosingBlock = _findClosingBlock
+exports._findPrecedingBlock = _findPrecedingBlock
+exports._getLanguageForDirectory = _getLanguageForDirectory;
+
 
