@@ -1,7 +1,7 @@
 # xunit-autolabels
 
 ## Purpose
-This script automatically labels tests with their corresponding sample(s)' region tag(s).
+This script automatically labels tests with their corresponding snippet(s)' region tag(s).
 
 #### Languages supported
 This script supports the major *dynamically-typed* languages supported by GCP:
@@ -20,7 +20,7 @@ The following languages are **not** supported, as they are *statically-typed* an
 #### Accuracy
 The script is fairly accurate, but not perfect. Generally, it will notify you if any inaccuracy occurs (via warning and/or error messages).
 
-If it does *not* warn you, please [create an issue](../../issues).
+If it does *not* warn you, please [create an issue](../../../issues).
 
 ## Running
 The script has *four phases* - and must be *run four times* (once per phase):
