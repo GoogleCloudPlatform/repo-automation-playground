@@ -1,0 +1,7 @@
+{
+  "name": "test-samples",
+  "version": "0.0.1",
+  "dependencies": {
+    "mocha": "^6.2.2"
+  }
+}
