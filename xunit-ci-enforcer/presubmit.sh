@@ -61,7 +61,7 @@ fi
 
 DIFF=$(diff <(echo "$SAMPLE_TAGS") <(echo "$TEST_TAGS") | grep '_' | sort)
 
-DIFF_LABELED=$(echo "$DIFF" | sed "s/</Add tag to \\\033[91mTEST\\\033[0m:/g" | sed "s/>/Add tag to \\\033[36mSNIPPET\\\033[0m:/g" | sort)
+DIFF_LABELED=$(echo "$DIFF" | sed "s/</Add tag to \\\e[91mTEST\\\e[0m:/g" | sed "s/>/Add tag to \\\e[36mSNIPPET\\\e[0m:/g" | sort)
 
 if [[ -n $DIFF_LABELED ]]; then
 	echo -e $DIFF_LABELED
