@@ -664,7 +664,7 @@ const main = async (dirs) => {
 		} else if (language === 'PYTHON') {
 			installCmd = `${chalk.bold.green('pip')} install -r requirements.txt`;
 		} else if (language === 'RUBY') {
-			installCmd = `${chalk.bold.green('bundle')} exec`;
+			installCmd = `${chalk.bold.green('bundle')} install --path vendor/bundle`;
 		} else if (language === 'PHP') {
 			installCmd = `${chalk.bold.green('composer')} install`;
 		}
