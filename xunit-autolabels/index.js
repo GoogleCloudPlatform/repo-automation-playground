@@ -20,6 +20,10 @@ const camelcase = require('camelcase');
 const queryXmlFile = (filename, xpath) => {
 	const fileContents = fs.readFileSync(filename, 'utf-8');
 	const doc = new DOMParser().parseFromString(fileContents)
+	if (!doc) {
+		return null;
+	}
+
 	const nodes = xpathJs(doc, xpath).sort((a, b) => a.lineNumber - b.lineNumber || a.columnNumber - b.columnNumber); // preserve order
 	return nodes.map(n => n.value)
 }
@@ -29,6 +33,10 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 	let testFilters;
 	if (language === 'NODEJS' || language === 'RUBY') {
 		testFilters = queryXmlFile(allTestsXml, '//testcase/@name')
+		if (!testFilters) {
+			console.log(`${chalk.bold.red('ERR')} Invalid all-tests.xml; please regenerate: ${baseDir}`);
+		}
+
 		testFilters = testFilters
 			.filter(x => !x.includes('" hook '))
 			.map(x => x.replace(/\"/g,'\\\"').replace(/'/,"\'"))
