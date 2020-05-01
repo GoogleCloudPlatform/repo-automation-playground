@@ -131,7 +131,7 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 
 		const coverageDir = `test-${testFilterDirs[i]}`;
 		if (language === 'NODEJS') {
-			covCmds.push(`${chalk.red.bold('nyc')} --all --reporter=clover --report-dir="test-${testFilterDirs[i]}" ${chalk.green.bold('mocha')} --grep "${testFilters[i]}" --timeout 20000 --exit`);
+			covCmds.push(`${chalk.red.bold('nyc')} --all --reporter=clover --report-dir="test-${testFilterDirs[i]}" ${chalk.green.bold('mocha')} */*est.js *est.js --grep "${testFilters[i]}" --timeout 20000 --exit`);
 		} else if (language === 'RUBY') {
 			covCmds.push(`bundle exec "${chalk.red.bold('rspec')} --require=\"$RUBY_REPO_DIR/spec/helpers.rb\" spec/*.rb -e \\"${testFilters[i]}\\"" && ${chalk.green.bold('mkdir')} ${coverageDir} && sleep 5 && ${chalk.green.bold('mv')} coverage/coverage.xml ${coverageDir}/clover.xml`);
 		} else if (language === 'PYTHON') {
@@ -566,7 +566,7 @@ const dedupeRegionTags = async (language, testFile) => {
 
 const generateTestList = async (language, baseDir) => {
 	if (language == 'NODEJS') {
-		await execPromise(`mocha --reporter xunit --timeout 30s --exit --reporter-option="output=all-tests.xml"`, {cwd: baseDir});
+		await execPromise(`mocha *est.js *est/*est.js --reporter xunit --timeout 30s --exit --reporter-option="output=all-tests.xml"`, {cwd: baseDir});
 	} else if (language === 'PYTHON') {
 		await execPromise(`pytest --junitxml=all-tests.xml --cov=. --cov-report xml`, {cwd: baseDir});
 	} else if (language === 'RUBY') {
