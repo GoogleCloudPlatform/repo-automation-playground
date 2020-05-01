@@ -235,7 +235,8 @@ const _findRegionTagsAndRanges = (language, sourcePath) => {
 	});
 
 	// Ignore common (useless) region tag names
-	regionTagsAndRanges = regionTagsAndRanges.filter(tagAndRange => !['app', 'example'].includes(Object.keys(tagAndRange)[0]));
+	const ignoredRegionTags = ['app', 'example', 'all'];
+	regionTagsAndRanges = regionTagsAndRanges.filter(tagAndRange => !ignoredRegionTags.includes(Object.keys(tagAndRange)[0]));
 
 	// Identify + delete (obvious) "helper method" region tags
 	// (Helper method detection is imperfect, and relies on optional per-language idioms)
