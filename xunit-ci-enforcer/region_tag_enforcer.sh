@@ -37,37 +37,37 @@ function clean_stop_words {
 }
 
 function clean_describe {
-	echo $1 | cut -d':' -f2 | grep '_' | egrep -o '([a-z]|_)+' | grep '_' | sort | uniq
+	echo $1 | grep '_' | egrep -o '([a-z]|_)+' | grep '_' | sort -u
 }
 
 function check_dir {
 	echo -e "Checking directory: \x1b[1m$(pwd)\x1b[0m"
 
-	SAMPLE_TAGS=$(grep "\[START" *.* | cut -d':' -f2 | egrep -o '([a-z]|_)+' | sort | uniq)
+	SAMPLE_TAGS="$(grep -h "\[START" *.* | egrep -o '([a-z]|_)+' | sort -u)"
 
 	if [[ $(pwd) == *"nodejs"* ]]; then
 		echo -e 'Detected language: \x1b[92m\x1b[1mNode.js\x1b[0m'
-		TEST_DESCRIBES=$(grep "describe(\\'" test/*.*)
-		TEST_TAGS=$(clean_describe $TEST_DESCRIBES)
+		TEST_DESCRIBES=$(grep -h "describe(" test/*.*)
+		TEST_TAGS=$(clean_describe "$TEST_DESCRIBES")
 	elif [[ $(pwd) == *"ruby"* ]]; then
 		echo -e 'Detected language: \x1b[31m\x1b[1mRuby\x1b[0m'
-		TEST_DESCRIBES=$(grep "describe " spec/*.*)
-		TEST_TAGS=$(clean_describe $TEST_DESCRIBES)
+		TEST_DESCRIBES=$(grep -h "describe " spec/*.*)
+		TEST_TAGS=$(clean_describe "$TEST_DESCRIBES")
 	elif [[ $(pwd) == *"php"* ]]; then
 		echo -e 'Detected language: \x1b[36m\x1b[1mPHP\x1b[0m'
-		TEST_METHOD_NAMES=$(grep "function test" test/quick*.* | rev | cut -d' ' -f1 | rev | cut -c 5-)
-		TEST_METHOD_NAMES_SNAKE_CASE=$(snake_case $TEST_METHOD_NAMES)
-		TEST_TAGS=$(clean_stop_words $TEST_METHOD_NAMES_SNAKE_CASE)
+		TEST_METHOD_NAMES=$(grep -h "function test" test/quick*.* | rev | cut -d' ' -f1 | rev | cut -c 5-)
+		TEST_METHOD_NAMES_SNAKE_CASE=$(snake_case "$TEST_METHOD_NAMES")
+		TEST_TAGS=$(clean_stop_words "$TEST_METHOD_NAMES_SNAKE_CASE")
 	elif [[ $(pwd) == *"python"* ]]; then
 		echo -e 'Detected language: \x1b[38;5;208m\x1b[1mPython\x1b[0m'
-		TEST_CLASS_NAMES=$(grep "class " *_test.py | cut -d':' -f2 |  sed -E 's/^class (Test)*|\(\)$//g')
-		TEST_CLASS_NAMES_SNAKE_CASE=$(snake_case $TEST_CLASS_NAMES)
-		TEST_TAGS=$(clean_stop_words $TEST_CLASS_NAMES_SNAKE_CASE)
+		TEST_CLASS_NAMES=$(grep -h "class " *_test.py | cut -d':' -f2 |  sed -E 's/^class (Test)*|\(\)$//g')
+		TEST_CLASS_NAMES_SNAKE_CASE=$(snake_case "$TEST_CLASS_NAMES")
+		TEST_TAGS=$(clean_stop_words "$TEST_CLASS_NAMES_SNAKE_CASE")
 	else
 		echo -e '\x1b[31m\x1b[1mERROR\x1b[0m No supported language detected!'
 	fi
 
-	DIFF=$(diff <(echo "$SAMPLE_TAGS") <(echo "$TEST_TAGS") | grep '_' | sort)
+	DIFF="$(diff <(echo "$SAMPLE_TAGS") <(echo "$TEST_TAGS") | grep '_' | sort)"
 
 	DIFF_LABELED=$(echo "$DIFF" | sed "s/</\\\nAdd tag to \\\x1b[91mTEST\\\x1b[0m:/g" | sed "s/>/\\\nAdd tag to \\\x1b[36mSNIPPET\\\x1b[0m:/g" | sort)
 
@@ -83,9 +83,9 @@ if [ "$#" -eq 0 ]; then
 else
 	for DIR in "$@"
 	do
-		pushd "$DIR"
+		pushd "$DIR" > /dev/null
 	    check_dir "$DIR"
-	    popd
+	    popd > /dev/null
 	    echo "--------------------------------------"
 	done
 fi
