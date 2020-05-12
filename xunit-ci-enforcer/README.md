@@ -16,7 +16,11 @@ The script can also accept a list of directories:
 ./region_tag_enforcer <YOUR_SAMPLE_DIRECTORY> <ANOTHER_SAMPLE_DIRECTORY> ...
 ```
 
-## Caveats
-The script is **not currently** recursive. To scan an entire repository, you must _explicitly_ specify the directories to be scanned.
+### Running recursively
+Though the script itself is not recursive, we can use the UNIX `find` command to provide recursive-like functionality:
 
-(We plan to add recursive functionality in the future if there is enough interest.)
+Below is an example `find` command invocation for Node.js. (Note the `node_modules` exclusion, and how `-name *est` checks for `test` and `system-test` directories.)
+
+```
+./region_tag_enforcer $(find . -type d -name "*est" -not -path "*/node_modules/*" | xargs -I @ dirname @)
+```
