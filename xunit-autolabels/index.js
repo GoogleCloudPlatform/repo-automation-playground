@@ -65,6 +65,11 @@ const generateAndLinkToCloverReports = async (language, baseDir, allTestsXml) =>
 		const xunitFileNames = queryXmlFile(allTestsXml, '//testcase/@file')
 		testFilters = xunitNames.map((name, idx) => `${name} '${xunitClassNames[idx]}' ${xunitFileNames[idx]}`)
 	}
+	
+	// Check for blank testFilters
+	if (!testFilters.length) {
+		console.log(`${chalk.bold.red('ERR')} all-tests.xml is empty! Try regenerating it?`);
+	}
 
 	// PHP: handle @depends annotations
 	if (language === 'PHP') {
