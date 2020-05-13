@@ -41,19 +41,19 @@ function clean_describe {
 }
 
 function check_dir {
-	SAMPLE_TAGS="$(grep -h "\[START" *.* | egrep -o '([a-z]|_)+' | sort -u)"
+	SAMPLE_TAGS="$(grep -h "\[START" *.* --exclude=\*.{yaml,yml,json,md} | egrep -o '([a-z]|_)+' | sort -u)"
 
 	if [[ $(pwd) == *"nodejs"* ]]; then
 		LANG_MESSAGE='Detected language: \x1b[92m\x1b[1mNode.js\x1b[0m'
-		TEST_DESCRIBES=$(grep -h "describe(" test/*.*)
+		TEST_DESCRIBES=$(grep -h "describe(" *est/*.js)
 		TEST_TAGS=$(clean_describe "$TEST_DESCRIBES")
 	elif [[ $(pwd) == *"ruby"* ]]; then
 		LANG_MESSAGE='Detected language: \x1b[31m\x1b[1mRuby\x1b[0m'
-		TEST_DESCRIBES=$(grep -h "describe " spec/*.*)
+		TEST_DESCRIBES=$(grep -h "describe " spec/*.rb)
 		TEST_TAGS=$(clean_describe "$TEST_DESCRIBES")
 	elif [[ $(pwd) == *"php"* ]]; then
 		LANG_MESSAGE='Detected language: \x1b[36m\x1b[1mPHP\x1b[0m'
-		TEST_METHOD_NAMES=$(grep -h "function test" test/quick*.* | rev | cut -d' ' -f1 | rev | cut -c 5-)
+		TEST_METHOD_NAMES=$(grep -h "function test" *est/*.php | rev | cut -d' ' -f1 | rev | cut -c 5-)
 		TEST_METHOD_NAMES_SNAKE_CASE=$(snake_case "$TEST_METHOD_NAMES")
 		TEST_TAGS=$(clean_stop_words "$TEST_METHOD_NAMES_SNAKE_CASE")
 	elif [[ $(pwd) == *"python"* ]]; then
@@ -66,6 +66,17 @@ function check_dir {
 		true
 		return # Do nothing
 	fi
+
+	# Whitelisting
+	#   Whitelist one-character "tags" (e.g. "_") that are probably false positives
+	SAMPLE_TAGS=$(echo "$SAMPLE_TAGS" | grep -E ".{2,}")
+	TEST_TAGS=$(echo "$TEST_TAGS" | grep -E ".{2,}")
+
+	#   Whitelist tags containing "_setup"
+	SAMPLE_TAGS=$(echo "$SAMPLE_TAGS" | grep -v "_setup")
+	TEST_TAGS=$(echo "$TEST_TAGS" | grep -v "_setup")
+
+	# Compute diffs
 
 	DIFF="$(diff <(echo "$SAMPLE_TAGS") <(echo "$TEST_TAGS") | grep '_' | sort)"
 
