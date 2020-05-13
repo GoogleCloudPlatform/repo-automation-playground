@@ -43,12 +43,6 @@ function clean_describe {
 function check_dir {
 	SAMPLE_TAGS="$(grep -h "\[START" *.* | egrep -o '([a-z]|_)+' | sort -u)"
 
-	# Whitelist one-character "tags" (e.g. "_") that are probably false positives
-	SAMPLE_TAGS=$(echo "$SAMPLE_TAGS" | grep -E ".{2,}")
-
-	# Whitelist tags containing "_setup"
-	SAMPLE_TAGS=$(echo "$SAMPLE_TAGS" | grep -v "_setup")
-
 	if [[ $(pwd) == *"nodejs"* ]]; then
 		LANG_MESSAGE='Detected language: \x1b[92m\x1b[1mNode.js\x1b[0m'
 		TEST_DESCRIBES=$(grep -h "describe(" test/*.*)
@@ -72,6 +66,17 @@ function check_dir {
 		true
 		return # Do nothing
 	fi
+
+	# Whitelisting
+	#   Whitelist one-character "tags" (e.g. "_") that are probably false positives
+	SAMPLE_TAGS=$(echo "$SAMPLE_TAGS" | grep -E ".{2,}")
+	TEST_TAGS=$(echo "$TEST_TAGS" | grep -E ".{2,}")
+
+	#   Whitelist tags containing "_setup"
+	SAMPLE_TAGS=$(echo "$SAMPLE_TAGS" | grep -v "_setup")
+	TEST_TAGS=$(echo "$TEST_TAGS" | grep -v "_setup")
+
+	# Compute diffs
 
 	DIFF="$(diff <(echo "$SAMPLE_TAGS") <(echo "$TEST_TAGS") | grep '_' | sort)"
 
