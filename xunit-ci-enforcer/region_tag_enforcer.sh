@@ -45,7 +45,7 @@ function check_dir {
 
 	if [[ $(pwd) == *"nodejs"* ]]; then
 		LANG_MESSAGE='Detected language: \x1b[92m\x1b[1mNode.js\x1b[0m'
-		TEST_DESCRIBES=$(grep -h "describe(" test/*.js)
+		TEST_DESCRIBES=$(grep -h "describe(" *est/*.js)
 		TEST_TAGS=$(clean_describe "$TEST_DESCRIBES")
 	elif [[ $(pwd) == *"ruby"* ]]; then
 		LANG_MESSAGE='Detected language: \x1b[31m\x1b[1mRuby\x1b[0m'
@@ -53,7 +53,7 @@ function check_dir {
 		TEST_TAGS=$(clean_describe "$TEST_DESCRIBES")
 	elif [[ $(pwd) == *"php"* ]]; then
 		LANG_MESSAGE='Detected language: \x1b[36m\x1b[1mPHP\x1b[0m'
-		TEST_METHOD_NAMES=$(grep -h "function test" test/*.php | rev | cut -d' ' -f1 | rev | cut -c 5-)
+		TEST_METHOD_NAMES=$(grep -h "function test" *est/*.php | rev | cut -d' ' -f1 | rev | cut -c 5-)
 		TEST_METHOD_NAMES_SNAKE_CASE=$(snake_case "$TEST_METHOD_NAMES")
 		TEST_TAGS=$(clean_stop_words "$TEST_METHOD_NAMES_SNAKE_CASE")
 	elif [[ $(pwd) == *"python"* ]]; then
