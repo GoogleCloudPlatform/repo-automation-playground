@@ -16,6 +16,7 @@ const testParserMisc = {
 
 const sourceParser = require('./source-parser');
 const fileUtils = require('./file-utils');
+const yamlUtils = require('./yaml-utils');
 
 const parseSource = (sourcePath) => {
     const sourceProgram = fs.readFileSync(sourcePath).toString();
@@ -74,14 +75,19 @@ const analyzeDir = async (rootDir) => {
         parseTest(path, sourceMethods);
     });
 
+    let grepRegionTags = await fileUtils.getRegionTags(rootDir)
+
+    let ignoredRegionTags = yamlUtils.getUntestedRegionTags(rootDir);
+
+    yamlUtils.addYamlDataToSourceMethods(sourceMethods, rootDir);
+
+    // Compute final script region tags (including YAML aliases)
     let scriptRegionTags = [];
     sourceMethods.forEach(x => scriptRegionTags = scriptRegionTags.concat(x.drift.regionTags))
     scriptRegionTags = uniq(scriptRegionTags);
 
-    let grepRegionTags = await fileUtils.getRegionTags(rootDir)
-
     return {
-        grepRegionTags, scriptRegionTags, sourceMethods
+        grepRegionTags, scriptRegionTags, sourceMethods, ignoredRegionTags
     }
 }
 // '/Users/anassri/Desktop/nodejs-translate/samples'
@@ -91,19 +97,25 @@ require('yargs')
         'list-region-tags <path>',
         'Lists region tags in a file or directory.',
         {
-            tested: {
-              alias: 't',
+            detected: {
+              alias: 'd',
               type: 'boolean',
               default: 'true',
               requiresArg: true,
-              description: 'Whether or not to display tested region tags',
+              description: 'Display region tags detected by the AST parser',
             },
-            untested: {
+            undetected: {
               alias: 'u',
               type: 'boolean',
               default: 'true',
               requiresArg: true,
-              description: 'Whether or not to display un-tested region tags',
+              description: 'Display region tags NOT detected by the AST parser',
+            },
+            showTestCounts: {
+                alias: 'c',
+                type: 'boolean',
+                default: false,
+                description: 'Show test counts for each region tag',
             },
             showFilenames: {
                 alias: 'f',
@@ -114,25 +126,48 @@ require('yargs')
             }
         },
         async opts => {
-            const {sourceMethods, scriptRegionTags, grepRegionTags} = await analyzeDir(opts.path)
+            const {sourceMethods, scriptRegionTags, grepRegionTags, ignoredRegionTags} = await analyzeDir(opts.path)
 
-            if (opts.tested) {
-                console.log(chalk.bold(`-- ${chalk.green('Tested')} region tags: --`))
+            const getTestCounts = (regionTag) => {
+                const testDataMatches = sourceMethods
+                    .filter(x => x.drift.regionTags.includes(regionTag))
+                    .map(x => x.drift.testData)
+                    .reduce((x, acc) => acc = acc.concat(x));
+
+                return testDataMatches.length;
+            }
+
+            if (opts.detected) {
+                console.log(chalk.bold(`-- ${chalk.green('Detected')} region tags: --`))
                 scriptRegionTags.forEach(t => {
+                    let outputStr = t;
+
                     let filename;
+
+                    if (opts.showTestCounts) {
+                        outputStr += ` (${getTestCounts(t) || chalk.red('0')} test set(s))`;
+                    }
+
                     if (opts.showFilenames) {
                         filename = sourceMethods.filter(x => x.drift.regionTags.includes(t)).sourcePath;
-                    } else {
-                        console.log(t);
+                        outputStr += ` (Test path: ${chalk.bold(filename)})`
                     }
+
+                    console.log(outputStr);
                 })
             }
 
-            if (opts.untested) {
-                console.log(chalk.bold(`-- ${chalk.red('Untested')} region tags: --`))
-                grepRegionTags.filter(t => !scriptRegionTags.includes(t)).forEach(t => {
-                    console.log(t);
-                })
+            if (opts.undetected) {
+                console.log(chalk.bold(`-- ${chalk.red('Undetected')} region tags: --`))
+                grepRegionTags
+                    .filter(t => !scriptRegionTags.includes(t))
+                    .filter(t => !ignoredRegionTags.includes(t))
+                    .forEach(t => console.log(t));
+            }
+
+            if (ignoredRegionTags.length > 0) {
+                console.log(chalk.bold(`-- ${chalk.yellow('Ignored')} region tags: --`))
+                ignoredRegionTags.forEach(t => console.log(t));
             }
         }
     )
@@ -215,7 +250,30 @@ require('yargs')
                 }
             })
 
+            // Warn if some tests weren't labeled
+            const xunitOutputParsed = await xml2json(xunitOutput);
+            const unlabeledTests = xunitOutputParsed.testsuite.testcase.filter(x => !x['$'].customProperty);
+            if (unlabeledTests.length > 0) {
+                console.log(`The following tests have ${chalk.bold('no associated region tags:')}`);
+                unlabeledTests.forEach(t => {
+                    console.log(`  ${t['$'].classname}:${t['$'].name}`)
+                })
+            }
             console.log(xunitOutput)
+        }
+    )
+    .command(
+        'validate-yaml <rootDir>',
+        'Validates .drift-data.yml files in a directory',
+        {},
+        async opts => {
+            const {sourceMethods, grepRegionTags, scriptRegionTags} = await analyzeDir(opts.rootDir);
+
+            if (yamlUtils.validateYamlSyntax(opts.rootDir, grepRegionTags)) {
+                console.log(`Yaml files valid!`);
+            } else {
+                console.log(`Yaml files ${chalk.bold('not')} valid!`);
+            }
         }
     )
     .recommendCommands()

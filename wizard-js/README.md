@@ -22,3 +22,8 @@ cat xunit-output.xml | index.js inject-snippet-mapping <rootDir>
 # Using XUnit output from a test runner
 mocha <rootDir> --reporter=xunit | index.js inject-snippet-mapping <rootDir>
 ```
+
+Validate .drift-data.yml files in a directory
+```
+node index.js validate-yaml <rootDir>
+```
