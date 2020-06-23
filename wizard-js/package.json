@@ -1,0 +1,26 @@
+{
+  "name": "google-labeler-wizard-js",
+  "version": "1.0.0",
+  "description": "Labeler wizard",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "^12"
+  },
+  "author": "Ace Nassri <anassri@google.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "array-flatten": "^3.0.0",
+    "chalk": "^4.1.0",
+    "deep-equal": "^2.0.3",
+    "esprima": "^4.0.1",
+    "execa": "^4.0.2",
+    "get-stdin": "^8.0.0",
+    "uniq": "^1.0.1",
+    "xml2js": "^0.4.23",
+    "yaml": "^1.10.0",
+    "yargs": "^15.3.1"
+  }
+}
