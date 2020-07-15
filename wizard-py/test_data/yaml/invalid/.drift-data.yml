@@ -1,0 +1,29 @@
+# "Tested" property should equal False, if it's specified
+undetectable_tag:
+  tested: True
+
+# "Overwrite" property should equal True, if it's specified
+overwritten_tag:
+  overwrite: False
+
+# Overwritten tags should be parsed (detectable in source code)
+unparsed_overwritten_tag:
+  overwrite: True
+
+# Detectable tags should not allow "tested: false" key
+detectable_tag:
+  tested: False
+
+# Explicitly-specified test *files* must exist
+nonexistent_test_file:
+  'fake_test.py':
+    - some_test_method
+
+# Additions must be an array
+additions_tag:
+  additions: false
+
+# Detectable tags should not allow an additions field
+another_detectable_tag:
+  additions:
+    - detectable_tag
