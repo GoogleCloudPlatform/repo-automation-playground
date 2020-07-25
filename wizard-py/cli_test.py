@@ -117,7 +117,6 @@ class CliEdgeCaseTests(unittest.TestCase):
                 'test_data/parser/edge_cases', xunit_lines)
 
             out, _ = self.capsys.readouterr()
-            print(out)
             assert 'customProperty' in out
 
     def test_sums_test_counts_from_constituents_and_detected_methods(self):
