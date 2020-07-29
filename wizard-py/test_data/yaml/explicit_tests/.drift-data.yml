@@ -1,0 +1,12 @@
+not_overwritten_tag:
+  'explicit_main_test.py':
+    - test_method
+
+overwritten_tag:
+  'explicit_main_test.py':
+    - test_method
+  override: true
+
+detectable_tag:
+  'explicit_main_test.py':
+    - test_method

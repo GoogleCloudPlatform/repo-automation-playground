@@ -1,0 +1,10 @@
+undetectable_tag:
+  tested: False
+
+no_explicit_tests:
+  'smoke_test_test.py':
+    - nonexistent_test_method
+
+additions_tests:
+  additions:
+    - detectable_tag

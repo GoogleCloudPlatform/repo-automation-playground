@@ -1,0 +1,8 @@
+method_1:
+  'overwrite_test.py':
+    - nonexistent_test_method
+
+method_2:
+  'overwrite_test.py':
+    - nonexistent_test_method
+  overwrite: true
