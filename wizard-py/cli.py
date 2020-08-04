@@ -96,11 +96,12 @@ def inject_snippet_mapping(root_dir, stdin_lines):
 
             if test_key in m_test_keys:
                 # Inject region tags into customProperty XML attribute
-                xunit_region_tags = x.attrib['customProperty'] + ',' \
-                                    if 'customProperty' in x.attrib else ''
-                xunit_region_tags = xunit_region_tags.strip(',')
-                xunit_region_tags += ','.join(m.drift['region_tags'])
-                x.set('customProperty', xunit_region_tags)
+                existing_tag_str = x.attrib.get('customProperty')
+                existing_tag_list = existing_tag_str.split(',') if existing_tag_str else []
+
+                deduped_tag_list = list(set(existing_tag_list + m.drift['region_tags']))
+
+                x.set('customProperty', ','.join(deduped_tag_list))
 
     print(etree.tostring(xunit_tree).decode())
 
