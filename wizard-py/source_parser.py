@@ -65,7 +65,7 @@ def add_children_drift_data(source_methods):
                 child_method = child_methods[0]
                 __recursor__(child_method)
 
-                child_drift = child_method['drift']
+                child_drift = child_method.drift
                 method.drift['region_tags'] += child_drift['region_tags']
                 method.drift['test_methods'] += child_drift['test_methods']
 
