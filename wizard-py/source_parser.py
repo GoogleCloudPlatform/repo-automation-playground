@@ -45,6 +45,10 @@ def get_top_level_methods(source_path):
             method.drift['source_path'] = source_path
             method.drift['children'] = __get_method_children(method)
 
+            # Initialize array values
+            method.drift['region_tags'] = []
+            method.drift['test_methods'] = []
+
         return methods
 
 
