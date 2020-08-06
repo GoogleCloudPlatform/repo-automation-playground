@@ -86,6 +86,8 @@ def inject_snippet_mapping(root_dir, stdin_lines):
     (grep_tags, source_tags, ignored_tags, source_methods) = \
         analyze.analyze_dir(root_dir)
 
+    print('DBG STDIN', stdin_lines)
+
     xunit_tree = etree.fromstring("".join(stdin_lines))
 
     for x in xunit_tree.findall('.//testcase'):
