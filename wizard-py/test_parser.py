@@ -6,6 +6,7 @@ def get_test_methods(test_path):
     with open(test_path, 'r') as f:
         content = "".join(f.readlines())
         parsed_nodes = ast.iter_child_nodes(ast.parse(content))
+        parsed_nodes = [x for x in parsed_nodes]
 
         # Handle test methods wrapped in classes
         class_nodes = [x for x in parsed_nodes if 'ClassDef' in str(type(x))]
@@ -19,6 +20,15 @@ def get_test_methods(test_path):
 
         for n in test_nodes:
             n.test_path = test_path
+
+        # Verify file contains no duplicate method names
+        # (Only relevant for test methods wrapped in classes)
+        used_test_names = set()
+        for n in test_nodes:
+            if n.name in used_test_names:
+                raise ValueError(
+                    f'Test name {n.name} in file {test_path} must be unique.')
+            used_test_names.add(n.name)
 
         return test_nodes
 

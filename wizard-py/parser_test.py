@@ -1,6 +1,8 @@
 import constants
-import source_parser
 import unittest
+
+import source_parser
+import test_parser
 
 
 class ParserSmokeTests(unittest.TestCase):
@@ -129,3 +131,11 @@ class ParserEdgeCaseTests(unittest.TestCase):
 
         self.assertEqual(method_1.drift['region_tags'], ['root_tag'])
         self.assertEqual(method_2.drift['region_tags'], ['root_tag'])
+
+    def test_prohibits_identically_named_tests(self):
+        test_path = 'test_data/duplicate_test_names/class_wrapped_test.py'
+
+        with self.assertRaises(ValueError) as err:
+            test_parser.get_test_methods(test_path)
+
+        assert 'must be unique' in str(err.exception)
