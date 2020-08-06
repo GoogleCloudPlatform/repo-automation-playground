@@ -104,6 +104,7 @@ def inject_snippet_mapping(root_dir, stdin_lines):
                 deduped_tag_list = list(set(existing_tag_list + m.drift['region_tags']))
 
                 x.set('customProperty', ','.join(deduped_tag_list))
+                x.set('driftRegionTags', ','.join(deduped_tag_list))
 
     print(etree.tostring(xunit_tree).decode())
 
