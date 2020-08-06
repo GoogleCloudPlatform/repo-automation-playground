@@ -89,7 +89,9 @@ def inject_snippet_mapping(root_dir, stdin_lines):
     xunit_tree = etree.fromstring("".join(stdin_lines))
 
     for x in xunit_tree.findall('.//testcase'):
-        test_key = (x.attrib['classname'].split('.')[-1], x.attrib['name'])
+        class_parts = [p for p in x.attrib['classname'].split('.') \
+                       if not p.startswith('Test')]
+        test_key = (class_parts[-1], x.attrib['name'])
         for m in source_methods:
             m_test_keys = [(os.path.splitext(os.path.basename(t[0]))[0], t[1])
                            for t in m.drift['test_methods']]

@@ -5,7 +5,15 @@ import constants
 def get_test_methods(test_path):
     with open(test_path, 'r') as f:
         content = "".join(f.readlines())
-        test_nodes = ast.iter_child_nodes(ast.parse(content))
+        parsed_nodes = ast.iter_child_nodes(ast.parse(content))
+
+        # Handle test methods wrapped in classes
+        class_nodes = [x for x in parsed_nodes if 'ClassDef' in str(type(x))]
+        test_nodes = [x for x in parsed_nodes if x not in class_nodes]
+
+        for c in class_nodes:
+            test_nodes += c.body
+
         test_nodes = [x for x in test_nodes if hasattr(x, 'name')]
         test_nodes = [x for x in test_nodes if x.name.startswith('test_')]
 

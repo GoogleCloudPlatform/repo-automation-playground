@@ -132,6 +132,18 @@ class CliEdgeCaseTests(unittest.TestCase):
 
         assert 'untested_method (2 test(s))' in out
 
+    def test_detects_tests_wrapped_in_classes(self):
+        cli.list_region_tags(
+            'test_data/parser/class_wrapped_tests',
+            True,
+            False,
+            True,
+            False
+        )
+
+        out, _ = self.capsys.readouterr()
+        print(out)
+        assert '2 test(s)' in out
 
 class ListSourceFilesTest(unittest.TestCase):
     @pytest.fixture(autouse=True)
