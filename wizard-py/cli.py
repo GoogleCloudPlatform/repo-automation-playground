@@ -97,13 +97,13 @@ def inject_snippet_mapping(root_dir, stdin_lines):
                            for t in m.drift['test_methods']]
 
             if test_key in m_test_keys:
-                # Inject region tags into customProperty XML attribute
-                existing_tag_str = x.attrib.get('customProperty')
+                # Inject region tags into driftRegionTags XML attribute
+                existing_tag_str = x.attrib.get('driftRegionTags')
                 existing_tag_list = existing_tag_str.split(',') if existing_tag_str else []
 
                 deduped_tag_list = list(set(existing_tag_list + m.drift['region_tags']))
 
-                x.set('customProperty', ','.join(deduped_tag_list))
+                x.set('driftRegionTags', ','.join(deduped_tag_list))
 
     print(etree.tostring(xunit_tree).decode())
 
