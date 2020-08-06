@@ -123,7 +123,7 @@ def validate_yaml_syntax(root_dir, grep_tags, source_tags):
                 if tag not in grep_tags:
                     print(
                         f'Yaml file {yaml_path} contains region '
-                        'tag not used in source files: {tag}')
+                        f'tag not used in source files: {tag}')
                     is_valid = False
                 elif tag_should_be_in_source and tag not in source_tags:
                     print(
