@@ -13,7 +13,7 @@ def list_region_tags(root_dir,
                      show_test_counts,
                      show_filenames):
 
-    if not show_detected and show_test_counts:
+    if show_undetected and show_test_counts:
         print('WARN Undetected/ignored region tags do not have test counts')
 
     (grep_tags, source_tags, ignored_tags, source_methods) = \
@@ -89,18 +89,21 @@ def inject_snippet_mapping(root_dir, stdin_lines):
     xunit_tree = etree.fromstring("".join(stdin_lines))
 
     for x in xunit_tree.findall('.//testcase'):
-        test_key = (x.attrib['classname'].split('.')[-1], x.attrib['name'])
+        class_parts = [p for p in x.attrib['classname'].split('.') \
+                       if not p.startswith('Test')]
+        test_key = (class_parts[-1], x.attrib['name'])
         for m in source_methods:
             m_test_keys = [(os.path.splitext(os.path.basename(t[0]))[0], t[1])
                            for t in m.drift['test_methods']]
 
             if test_key in m_test_keys:
                 # Inject region tags into customProperty XML attribute
-                xunit_region_tags = x.attrib['customProperty'] + ',' \
-                                    if 'customProperty' in x.attrib else ''
-                xunit_region_tags = xunit_region_tags.strip(',')
-                xunit_region_tags += ','.join(m.drift['region_tags'])
-                x.set('customProperty', xunit_region_tags)
+                existing_tag_str = x.attrib.get('customProperty')
+                existing_tag_list = existing_tag_str.split(',') if existing_tag_str else []
+
+                deduped_tag_list = list(set(existing_tag_list + m.drift['region_tags']))
+
+                x.set('region_tags', ','.join(deduped_tag_list))
 
     print(etree.tostring(xunit_tree).decode())
 
@@ -130,29 +133,42 @@ if __name__ == '__main__':
 
     lrt_parser = subparsers.add_parser(
         'list-region-tags', help=list_region_tags.__doc__)
-    lrt_parser.add_argument(
-        '--detected', '-d',
-        type=bool,
-        default=True,
-        help='Display region tags detected by the AST parser')
 
-    lrt_parser.add_argument(
-        '--undetected', '-u',
-        type=bool,
-        default=True,
-        help='Display region tags NOT detected by the AST parser')
+    detected = lrt_parser.add_mutually_exclusive_group(required=False)
+    detected.add_argument(
+        '--show-detected', '-d1',
+        dest='detected', action='store_true')
+    detected.add_argument(
+        '--hide-detected', '-d0',
+        dest='detected', action='store_false')
+    lrt_parser.set_defaults(detected=True)
 
-    lrt_parser.add_argument(
-        '--show_test_counts', '-c',
-        type=bool,
-        default=True,
-        help='Display region tags NOT detected by the AST parser')
+    undetected = lrt_parser.add_mutually_exclusive_group(required=False)
+    undetected.add_argument(
+        '--show-undetected', '-u1',
+        dest='undetected', action='store_true')
+    undetected.add_argument(
+        '--hide-undetected', '-u0',
+        dest='undetected', action='store_false')
+    lrt_parser.set_defaults(undetected=True)
 
-    lrt_parser.add_argument(
-        '--show_filenames', '-f',
-        type=bool,
-        default=True,
-        help='Display region tags NOT detected by the AST parser')
+    show_test_counts = lrt_parser.add_mutually_exclusive_group(required=False)
+    show_test_counts.add_argument(
+        '--show-test-counts', '-c1',
+        dest='show_test_counts', action='store_true')
+    show_test_counts.add_argument(
+        '--hide-test-counts', '-c0',
+        dest='show_test_counts', action='store_false')
+    lrt_parser.set_defaults(show_test_counts=True)
+
+    show_filenames = lrt_parser.add_mutually_exclusive_group(required=False)
+    show_filenames.add_argument(
+        '--show-filenames', '-f1',
+        dest='show_filenames', action='store_true')
+    show_filenames.add_argument(
+        '--hide-filenames', '-f0',
+        dest='show_filenames', action='store_false')
+    lrt_parser.set_defaults(show_filenames=True)
 
     lsf_parser = subparsers.add_parser(
         'list-source-files', help=list_source_files.__doc__)
