@@ -1,0 +1,1 @@
+[{"name": "not_main", "class_name": "bad_region_tag", "method_name": "not_main", "parser": "direct_invocation", "start_line": 23, "source_path": "/Users/anassri/Desktop/repo-automation-playground/xunit-autolabeler-v2/ast_parser/core/test_data/cli/bad_region_tag/bad_region_tag.py", "children": [], "end_line": 24, "test_methods": []}]
