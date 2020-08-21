@@ -82,7 +82,7 @@ def list_source_files(root_dir, show_tested_files):
 
 
 # Adds snippet mapping to XUnit output
-def inject_snippet_mapping(root_dir, stdin_lines):
+def inject_snippet_mapping(root_dir, stdin_lines, output_file = None):
     (grep_tags, source_tags, ignored_tags, source_methods) = \
         analyze.analyze_dir(root_dir)
 
@@ -105,7 +105,12 @@ def inject_snippet_mapping(root_dir, stdin_lines):
 
                 x.set('region_tags', ','.join(deduped_tag_list))
 
-    print(etree.tostring(xunit_tree).decode())
+    output = etree.tostring(xunit_tree).decode()
+    if output_file:
+        with open(output_file, 'w+') as f:
+            f.write(output)
+    else:
+        print(output)
 
 
 # Validates .drift-data.yml files in a directory
@@ -182,6 +187,15 @@ if __name__ == '__main__':
     isj_parser = subparsers.add_parser(
         'inject-snippet-mapping', help=inject_snippet_mapping.__doc__)
 
+    # Hotfix requested by tmatsuo@ (vs. writing to stdout)
+    # TODO(anassri@): upcoming version ("polyglot parser") will support
+    #                 file output for *all* commands, not just this one
+    isj_parser.add_argument(
+        '--output_file',
+        type=str,
+        default=None,
+        help='File to write output to. (Omit for stdout)')
+
     vy_parser = subparsers.add_parser(
         'validate-yaml', help=validate_yaml.__doc__)
 
@@ -197,6 +211,6 @@ if __name__ == '__main__':
     elif args.command == 'list-source-files':
         list_source_files(args.root_dir, args.tested_files)
     elif args.command == 'inject-snippet-mapping':
-        inject_snippet_mapping(args.root_dir, sys.stdin.readlines())
+        inject_snippet_mapping(args.root_dir, sys.stdin.readlines(), args.output_file)
     elif args.command == 'validate-yaml':
         validate_yaml(args.root_dir)
