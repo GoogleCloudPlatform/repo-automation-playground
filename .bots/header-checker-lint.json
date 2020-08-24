@@ -1,0 +1,5 @@
+{
+    "sourceFileExtensions": ["js", "py"],
+    "allowedLicenses": ["Apache-2.0"],
+    "ignoreFiles": ["**/node_modules/*"]
+}
