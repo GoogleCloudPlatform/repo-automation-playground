@@ -19,6 +19,6 @@ cd wizard-py
 # add user's pip binary path to PATH
 export PATH="${HOME}/.local/bin:${PATH}"
 
-pip install --user -r requirements.txt
+pip install --user pytest PyYAML
 
 pytest
