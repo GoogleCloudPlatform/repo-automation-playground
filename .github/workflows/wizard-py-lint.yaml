@@ -8,13 +8,13 @@ on:
 
 jobs:
   my-job:
-    name: Test
+    name: Lint
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: CI build
       env:
         TEST_ENV: test
-        TRAMPOLINE_BUILD_FILE: ci-cd/test_wizard_py.sh
+        TRAMPOLINE_BUILD_FILE: ci-cd/lint_wizard_py.sh
         TRAMPOLINE_IMAGE: gcr.io/cloud-devrel-public-resources/docker-ci-helper/python
       run: ${GITHUB_WORKSPACE}/ci-cd/trampoline_v2.sh
