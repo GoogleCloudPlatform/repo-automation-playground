@@ -23,5 +23,3 @@ pip install --user -r requirements.txt
 pip install --user -r requirements-dev.txt
 
 flake8
-
-pytest *_test.py
