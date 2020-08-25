@@ -8,7 +8,7 @@ on:
 
 jobs:
   my-job:
-    name: Python AST CI
+    name: Test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
