@@ -97,14 +97,14 @@ def list_source_files(root_dir, show_tested_files):
 
 
 # Adds snippet mapping to XUnit output
-def inject_snippet_mapping(root_dir, stdin_lines, output_file = None):
+def inject_snippet_mapping(root_dir, stdin_lines, output_file=None):
     (grep_tags, source_tags, ignored_tags, source_methods) = \
         analyze.analyze_dir(root_dir)
 
     xunit_tree = etree.fromstring("".join(stdin_lines))
 
     for x in xunit_tree.findall('.//testcase'):
-        class_parts = [p for p in x.attrib['classname'].split('.') \
+        class_parts = [p for p in x.attrib['classname'].split('.')
                        if not p.startswith('Test')]
         test_key = (class_parts[-1], x.attrib['name'])
         for m in source_methods:
@@ -114,9 +114,11 @@ def inject_snippet_mapping(root_dir, stdin_lines, output_file = None):
             if test_key in m_test_keys:
                 # Inject region tags into customProperty XML attribute
                 existing_tag_str = x.attrib.get('customProperty')
-                existing_tag_list = existing_tag_str.split(',') if existing_tag_str else []
+                existing_tag_list = existing_tag_str.split(',') \
+                    if existing_tag_str else []
 
-                deduped_tag_list = list(set(existing_tag_list + m.drift['region_tags']))
+                deduped_tag_list = \
+                    list(set(existing_tag_list + m.drift['region_tags']))
 
                 x.set('region_tags', ','.join(deduped_tag_list))
 
@@ -226,6 +228,7 @@ if __name__ == '__main__':
     elif args.command == 'list-source-files':
         list_source_files(args.root_dir, args.tested_files)
     elif args.command == 'inject-snippet-mapping':
-        inject_snippet_mapping(args.root_dir, sys.stdin.readlines(), args.output_file)
+        inject_snippet_mapping(
+            args.root_dir, sys.stdin.readlines(), args.output_file)
     elif args.command == 'validate-yaml':
         validate_yaml(args.root_dir)

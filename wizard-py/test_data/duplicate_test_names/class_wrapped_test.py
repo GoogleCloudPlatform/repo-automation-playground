@@ -15,9 +15,11 @@
 import class_wrapped
 import unittest
 
+
 class FirstTestClass(unittest.TestCase):
     def test_main():
         assert class_wrapped.method() == 'main'
+
 
 class SecondTestClass(unittest.TestCase):
     def test_main():

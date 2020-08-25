@@ -160,6 +160,7 @@ class CliEdgeCaseTests(unittest.TestCase):
         print(out)
         assert '2 test(s)' in out
 
+
 class ListSourceFilesTest(unittest.TestCase):
     @pytest.fixture(autouse=True)
     def capsys(self, capsys):
