@@ -16,6 +16,5 @@ jobs:
       env:
         TEST_ENV: test
         TRAMPOLINE_BUILD_FILE: ci-cd/lint_wizard_py.sh
-        TRAMPOLINE_DOCKERFILE: ci-cd/wizard_py_dockerfile
         TRAMPOLINE_IMAGE: gcr.io/cloud-devrel-public-resources/docker-ci-helper/python
       run: ${GITHUB_WORKSPACE}/ci-cd/trampoline_v2.sh
