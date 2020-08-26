@@ -20,11 +20,11 @@ import subprocess
 
 def __getFiles(root_dir, predicate):
     paths = [os.path.join(root_dir, p) for p in os.listdir(root_dir)
-             if p != 'lib']
+             if p != 'lib' and
+             (p.startswith('.drift-data') or not p.startswith('.'))]
 
     # Ignore dot-folders (e.g. '.nox', '.github', etc.)
-    folders = [p for p in paths if
-               not os.path.isfile(p) and not p.startswith('.')]
+    folders = [p for p in paths if not os.path.isfile(p)]
 
     files = [p for p in paths if os.path.isfile(p)
              and predicate(os.path.basename(p))]
