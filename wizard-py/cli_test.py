@@ -160,6 +160,12 @@ class CliEdgeCaseTests(unittest.TestCase):
         print(out)
         assert '2 test(s)' in out
 
+    def test_ignores_dot_prefixed_subdirs(self):
+        cli.list_source_files('test_data/dotfiles', 'all')
+
+        out, _ = self.capsys.readouterr()
+        assert '.py' not in out
+
 
 class ListSourceFilesTest(unittest.TestCase):
     @pytest.fixture(autouse=True)
