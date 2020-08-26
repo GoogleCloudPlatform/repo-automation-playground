@@ -20,8 +20,9 @@ import subprocess
 
 def __getFiles(root_dir, predicate):
     paths = [os.path.join(root_dir, p) for p in os.listdir(root_dir)
-             if p != 'lib' and not p.startswith('.')]
-    folders = [p for p in paths if not os.path.isfile(p)]
+             if p != 'lib']
+    folders = [p for p in paths if
+               not os.path.isfile(p) and not p.startswith('.')]
 
     files = [p for p in paths if os.path.isfile(p)
              and predicate(os.path.basename(p))]
