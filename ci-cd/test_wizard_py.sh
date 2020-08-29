@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # We'll be at the git root, so move to the target directory.
-cd wizard-py
+cd xunit-autolabeler-v2/ast_parser
 
 # add user's pip binary path to PATH
 export PATH="${HOME}/.local/bin:${PATH}"
@@ -22,4 +22,4 @@ export PATH="${HOME}/.local/bin:${PATH}"
 pip install --user -r requirements.txt
 pip install --user -r requirements-dev.txt
 
-pytest *_test.py
+pytest */*_test.py
