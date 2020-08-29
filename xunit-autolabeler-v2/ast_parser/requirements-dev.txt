@@ -1,0 +1,8 @@
+Flask==1.1.2
+PyYAML==5.3.1
+mock==4.0.2
+requests-mock==1.7.0
+pytest==5.4.3
+WebTest==2.0.35
+webapp2==2.5.2
+flake8==3.7.7
