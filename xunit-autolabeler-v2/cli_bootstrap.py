@@ -99,8 +99,16 @@ if __name__ == '__main__':
             args.show_test_counts,
             args.show_filenames, args.output_file)
     elif args.command == 'list-source-files':
-        cli.list_source_files(args.repo_json, args.root_dir, args.tested_files, args.output_file)
+        cli.list_source_files(
+            args.repo_json,
+            args.root_dir,
+            args.tested_files,
+            args.output_file)
     elif args.command == 'inject-snippet-mapping':
-        cli.inject_snippet_mapping(args.repo_json, args.root_dir, sys.stdin.readlines(), args.output_file)
+        cli.inject_snippet_mapping(
+            args.repo_json,
+            args.root_dir,
+            sys.stdin.readlines(),
+            args.output_file)
     elif args.command == 'validate-yaml':
         cli.validate_yaml(args.repo_json, args.root_dir)
