@@ -1,4 +1,5 @@
 import json
+from os import path
 
 from . import polyglot_parser, yaml_utils
 
@@ -8,6 +9,11 @@ def analyze_json(repo_json, root_dir):
     with open(repo_json, 'r') as file:
         json_content = '\n'.join(file.readlines())
         json_methods = json.loads(json_content)
+
+        # Normalize source_path values
+        parent_path = path.dirname(repo_json)
+        for m in json_methods:
+            m['source_path'] = path.join(parent_path, m['source_path'])
 
     source_filepaths = set([m['source_path'] for m in json_methods])
 

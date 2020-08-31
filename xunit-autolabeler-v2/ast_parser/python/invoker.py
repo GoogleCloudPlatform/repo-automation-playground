@@ -1,4 +1,5 @@
 import json
+import os
 
 from lib import file_utils
 from python import source_parser, test_parser
@@ -30,5 +31,9 @@ def get_json_for_dir(root_dir):
 
     for f in test_files:
         __parse_test(f, source_methods)
+
+    for m in source_methods:
+        m.drift['source_path'] = os.path.relpath(
+            m.drift['source_path'], root_dir)
 
     return json.dumps([m.drift for m in source_methods])
