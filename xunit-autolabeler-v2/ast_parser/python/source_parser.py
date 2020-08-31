@@ -55,8 +55,6 @@ def get_top_level_methods(source_path):
         # run direct_invocation parser after flask_router to avoid duplicates
         methods += direct_invocation.parse(nodes, class_name)
 
-        # add ending lines
-
         for method in methods:
             method.drift['source_path'] = os.path.abspath(source_path)
             method.drift['children'] = __get_method_children(method)

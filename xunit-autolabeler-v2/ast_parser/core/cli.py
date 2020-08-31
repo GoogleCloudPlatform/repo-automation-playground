@@ -116,8 +116,8 @@ def inject_snippet_mapping(repo_json,
                            for t in m['test_methods']]
 
             if test_key in m_test_keys:
-                # Inject region tags into customProperty XML attribute
-                existing_tag_str = x.attrib.get('customProperty')
+                # Inject region tags into region_tags XML attribute
+                existing_tag_str = x.attrib.get('region_tags')
                 existing_tag_list = \
                     existing_tag_str.split(',') if existing_tag_str else []
 
