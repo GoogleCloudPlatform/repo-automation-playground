@@ -149,6 +149,7 @@ class CliEdgeCaseTests(unittest.TestCase):
     def capsys(self, capsys):
         self.capsys = capsys
         self.cli_path = path.join(TEST_DATA_PATH, 'cli')
+        self.bad_json_path = path.join(TEST_DATA_PATH, 'bad_repo_json')
         self.parser_path = path.join(TEST_DATA_PATH, 'parser')
 
     def test_warn_on_improper_region_tag_usage(self):
@@ -206,6 +207,19 @@ class CliEdgeCaseTests(unittest.TestCase):
         out, _ = self.capsys.readouterr()
 
         assert '2 test(s)' in out
+
+    def test_errors_on_moved_repo_json(self):
+        with self.assertRaises(ValueError) as err:
+            cli.list_region_tags(
+                path.join(self.bad_json_path, 'repo.json'),
+                self.bad_json_path,
+                True,
+                False,
+                True,
+                False
+            )
+
+        assert 'Did you move repo.json' in str(err.exception)
 
 
 class DotfileIgnoreTests(unittest.TestCase):

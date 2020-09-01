@@ -1,0 +1,1 @@
+[{"name": "not_main", "class_name": "edge_cases", "method_name": "not_main", "parser": "direct_invocation", "start_line": 23, "source_path": "edge_cases.py", "children": [], "end_line": 24, "test_methods": [["core/test_data/parser/edge_cases/edge_cases_test.py", "test_not_main"]]}]

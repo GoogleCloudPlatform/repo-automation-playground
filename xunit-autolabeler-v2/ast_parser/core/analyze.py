@@ -21,6 +21,12 @@ def analyze_json(repo_json, root_dir):
     ignored_tags = set()
 
     for source_file in source_filepaths:
+        if not path.isfile(source_file):
+            raise ValueError(
+                f'Path {source_file} in file {repo_json} not found! '
+                'Did you move repo.json from its generated location?'
+            )
+
         (region_tags, ignored_tag_names) = \
             polyglot_parser.get_region_tag_regions(source_file)
 
