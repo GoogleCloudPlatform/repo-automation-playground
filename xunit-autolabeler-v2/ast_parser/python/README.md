@@ -9,5 +9,7 @@ That data can then be used by the "meta-parser" in `ast_parser/core` to match te
 Run the following command to generate a `repo.json` file for a specific directory:
 
 ```
-python python_bootstrap.py YOUR_SAMPLE_DIR > YOUR_SAMPLE_DIR/repo.json
+python python_bootstrap.py YOUR_SAMPLE_DIR
 ```
+
+**Do not** move the generated `repo.json` file, as this will break its stored filepaths.
