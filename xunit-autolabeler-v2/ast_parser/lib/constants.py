@@ -20,6 +20,6 @@ IGNORED_METHOD_NAMES = [
 ]
 
 REGION_TAG_GREP_ARGS = \
-    f'grep -hr START .'.split(' ')
+    'grep -hr START .'.split(' ')
 REGION_TAG_GREP_ARGS += ['--include=*.py', '--exclude=*/lib/*']
 REGION_TAG_GREP_ARGS += ['--include=*.js', '--exclude=*/node_modules/*']
