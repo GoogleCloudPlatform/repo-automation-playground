@@ -13,13 +13,16 @@
 # limitations under the License.
 
 
-IGNORED_METHOD_NAMES = [
+IGNORED_METHOD_NAMES = (
     'run_command',
     'parse_command_line_args',
     'main'
-]
+)
 
-REGION_TAG_GREP_ARGS = \
-    'grep -hr START .'.split(' ')
-REGION_TAG_GREP_ARGS += ['--include=*.py', '--exclude=*/lib/*']
-REGION_TAG_GREP_ARGS += ['--include=*.js', '--exclude=*/node_modules/*']
+REGION_TAG_GREP_ARGS = (
+    'grep', '-hr', 'START', '.'
+
+    # Language-specific arguments
+    '--include=*.py', '--exclude=*/lib/*'
+    '--include=*.js', '--exclude=*/node_modules/*'
+)

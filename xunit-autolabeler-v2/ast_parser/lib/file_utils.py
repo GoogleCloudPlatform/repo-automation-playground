@@ -26,8 +26,8 @@ def _getFiles(root_dir: str, predicate: Callable[[str], bool]) -> List[str]:
        whose names match the provided predicate function
 
     Args:
-        root_dir (str): the root directory to search from
-        predicate (func(str -> bool)): the predicate function
+        root_dir: the root directory to search from
+        predicate: the predicate function
                                        to filter filenames with
 
     Returns:
@@ -55,7 +55,7 @@ def get_python_files(root_dir: str) -> List[str]:
     """Recursively lists the Python files in a directory
 
     Args:
-        root_dir (str): the root directory to search from
+        root_dir: the root directory to search from
 
     Returns:
         A list of Python filepaths relative to root_dir
@@ -67,7 +67,7 @@ def get_yaml_files(root_dir: str) -> List[str]:
     """Recursively lists the DRIFT yaml metadata files in a directory
 
     Args:
-        root_dir (str): the root directory to search from
+        root_dir: the root directory to search from
 
     Returns:
         A list of DRIFT yaml metadata filepaths relative to root_dir
@@ -79,7 +79,7 @@ def get_region_tags(root_dir: str) -> List[str]:
     """Recursively find the region tags in a directory using `grep`
 
     Args:
-        root_dir (str): the root directory to search from
+        root_dir: the root directory to search from
 
     Returns:
         The list of region tags found in root_dir
@@ -89,7 +89,8 @@ def get_region_tags(root_dir: str) -> List[str]:
         stdout=subprocess.PIPE,
         cwd=root_dir)
     region_tags = proc.stdout.read().decode().split('\n')
-    region_tags = [tag.strip()[9:-1] for tag in region_tags]
+    region_tags = [tag.lstrip('/#').strip() for tag in region_tags]
+    region_tags = [tag[7:-1] for tag in region_tags]  # Strip START + brackets
     region_tags = [tag for tag in region_tags if len(tag) > 1]
 
     return list(set(region_tags))
