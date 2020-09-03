@@ -13,6 +13,9 @@
 # limitations under the License.
 
 
+import re
+
+
 IGNORED_METHOD_NAMES = (
     'run_command',
     'parse_command_line_args',
@@ -23,6 +26,8 @@ REGION_TAG_GREP_ARGS = (
     'grep', '-hr', 'START', '.',
 
     # Language-specific arguments
-    '--include=*.py', '--exclude=*/lib/*',
+    '--include=*.py', '--exclude=*/appengine/**/lib/**/*.py',
     '--include=*.js', '--exclude=*/node_modules/*',
 )
+
+START_VERB_REGEX = re.compile('^START\s')

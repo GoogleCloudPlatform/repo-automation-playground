@@ -37,8 +37,7 @@ def _getFiles(root_dir: str, predicate: Callable[[str], bool]) -> List[str]:
         # Ignore dot-directories
         return []
 
-    paths = [os.path.join(root_dir, path) for path in os.listdir(root_dir)
-             if path != 'lib']
+    paths = [os.path.join(root_dir, path) for path in os.listdir(root_dir)]
 
     folders = [path for path in paths if not os.path.isfile(path)]
 
@@ -60,10 +59,17 @@ def get_python_files(root_dir: str) -> List[str]:
     Returns:
         A list of Python filepaths relative to root_dir
     """
-    return _getFiles(root_dir, lambda path: path.endswith('.py'))
+    return _getFiles(
+        root_dir,
+        lambda path: (
+            path.endswith('.py')
+            and 'lib' not in path
+            and 'appengine' not in path
+        )
+    )
 
 
-def get_yaml_files(root_dir: str) -> List[str]:
+def get_drift_yaml_files(root_dir: str) -> List[str]:
     """Recursively lists the DRIFT yaml metadata files in a directory
 
     Args:
@@ -89,8 +95,13 @@ def get_region_tags(root_dir: str) -> List[str]:
         stdout=subprocess.PIPE,
         cwd=root_dir)
     region_tags = proc.stdout.read().decode().split('\n')
-    region_tags = [tag.lstrip('/#*').strip() for tag in region_tags]
-    region_tags = [tag[7:-1] for tag in region_tags]  # Strip START + brackets
+
+    # Extract region tags from START clauses
+    # e.g. "[START some_tag]" --> "some_tag"
+    region_tags = [tag.lstrip('/#*').strip().strip('[]').strip()
+                   for tag in region_tags]
+    region_tags = [constants.START_VERB_REGEX.sub('', tag)
+                   for tag in region_tags]
     region_tags = [tag for tag in region_tags if len(tag) > 1]
 
     return list(set(region_tags))
