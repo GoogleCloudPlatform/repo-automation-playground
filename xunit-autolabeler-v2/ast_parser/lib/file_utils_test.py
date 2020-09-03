@@ -42,6 +42,11 @@ class GetPythonFilesTest(unittest.TestCase):
 
         assert 'gae_lib.py' not in str(files)
 
+    def test_includes_appengine_folders(self):
+        files = file_utils.get_python_files(TEST_DIR)
+
+        assert 'gae_sample.py' in str(files)
+
     def test_includes_non_appengine_lib_folders(self):
         files = file_utils.get_python_files(TEST_DIR)
 
