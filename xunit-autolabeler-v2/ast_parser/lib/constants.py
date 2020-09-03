@@ -20,9 +20,9 @@ IGNORED_METHOD_NAMES = (
 )
 
 REGION_TAG_GREP_ARGS = (
-    'grep', '-hr', 'START', '.'
+    'grep', '-hr', 'START', '.',
 
     # Language-specific arguments
-    '--include=*.py', '--exclude=*/lib/*'
-    '--include=*.js', '--exclude=*/node_modules/*'
+    '--include=*.py', '--exclude=*/lib/*',
+    '--include=*.js', '--exclude=*/node_modules/*',
 )

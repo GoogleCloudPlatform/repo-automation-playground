@@ -89,7 +89,7 @@ def get_region_tags(root_dir: str) -> List[str]:
         stdout=subprocess.PIPE,
         cwd=root_dir)
     region_tags = proc.stdout.read().decode().split('\n')
-    region_tags = [tag.lstrip('/#').strip() for tag in region_tags]
+    region_tags = [tag.lstrip('/#*').strip() for tag in region_tags]
     region_tags = [tag[7:-1] for tag in region_tags]  # Strip START + brackets
     region_tags = [tag for tag in region_tags if len(tag) > 1]
 
