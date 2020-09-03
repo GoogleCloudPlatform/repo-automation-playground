@@ -28,6 +28,23 @@ REGION_TAG_GREP_ARGS = (
     # Language-specific arguments
     '--include=*.py', '--exclude=*/appengine/**/lib/**/*.py',
     '--include=*.js', '--exclude=*/node_modules/*',
+
+    # Webapps
+    '--include=*/appengine/**/*.html',
+    '--include=*/appengine/**/*.css',
+
+    # Metadata files
+    '--include=*.yaml',
+    '--include=*.yml',
+    '--include=requirements.txt',
+    '--include=requirements-dev.txt',
+    '--include=package.json',
+    '--include=config.json',
+
+    # Dockerfiles
+    '--include=dockerfile',
+    '--include=Dockerfile',
+    '--include=DOCKERFILE',
 )
 
 START_VERB_REGEX = re.compile('^START\\s')
