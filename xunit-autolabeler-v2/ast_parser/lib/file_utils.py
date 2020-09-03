@@ -18,7 +18,7 @@ from typing import List, Callable
 import os
 import subprocess
 
-import constants
+from . import constants
 
 
 def _getFiles(root_dir: str, predicate: Callable[[str], bool]) -> List[str]:
@@ -78,7 +78,12 @@ def get_drift_yaml_files(root_dir: str) -> List[str]:
     Returns:
         A list of DRIFT yaml metadata filepaths relative to root_dir
     """
-    return _getFiles(root_dir, lambda path: path == '.drift-data.yml')
+    return _getFiles(
+        root_dir,
+        lambda path: (
+            path == '.drift-data.yml' or path == '.drift-data.yaml'
+        )
+    )
 
 
 def get_region_tags(root_dir: str) -> List[str]:
