@@ -27,7 +27,7 @@ TEST_DIR = os.path.join(
 class GetFilesTest(unittest.TestCase):
     def test_getfiles_ignores_dotfiles(self):
         files = file_utils._getFiles(TEST_DIR, lambda x: True)
-        
+
         assert 'dotfile_tag' not in str(files)
 
 
@@ -61,18 +61,17 @@ class GetDriftYamlFilesTest(unittest.TestCase):
 
     def test_finds_yaml_files(self):
         files = file_utils.get_drift_yaml_files(TEST_DIR)
-        
-        assert '.drift-data.yaml' in str(files)
 
+        assert '.drift-data.yaml' in str(files)
 
     def test_excludes_yml_files_with_wrong_name(self):
         files = file_utils.get_drift_yaml_files(TEST_DIR)
-        
+
         assert '.bad-name.yml' not in str(files)
 
 
 class GetRegionTagsTest(unittest.TestCase):
     def test_finds_region_tags(self):
         region_tags = file_utils.get_region_tags(TEST_DIR)
-        
+
         assert 'region_tag' in region_tags

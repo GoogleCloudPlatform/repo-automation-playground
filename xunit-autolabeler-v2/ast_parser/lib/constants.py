@@ -30,4 +30,4 @@ REGION_TAG_GREP_ARGS = (
     '--include=*.js', '--exclude=*/node_modules/*',
 )
 
-START_VERB_REGEX = re.compile('^START\s')
+START_VERB_REGEX = re.compile('^START\\s')
