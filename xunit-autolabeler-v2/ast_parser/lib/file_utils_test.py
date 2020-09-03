@@ -50,7 +50,7 @@ class GetPythonFilesTest(unittest.TestCase):
     def test_includes_non_appengine_lib_folders(self):
         files = file_utils.get_python_files(TEST_DIR)
 
-        assert 'gcf_lib.py' not in str(files)
+        assert 'gcf_lib.py' in str(files)
 
 
 class GetDriftYamlFilesTest(unittest.TestCase):

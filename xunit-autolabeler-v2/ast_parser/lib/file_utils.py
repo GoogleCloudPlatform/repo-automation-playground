@@ -15,6 +15,7 @@
 
 from typing import List, Callable
 
+import re
 import os
 import subprocess
 
@@ -42,7 +43,7 @@ def _getFiles(root_dir: str, predicate: Callable[[str], bool]) -> List[str]:
     folders = [path for path in paths if not os.path.isfile(path)]
 
     files = [path for path in paths if os.path.isfile(path)
-             and predicate(os.path.basename(path))]
+             and predicate(path)]
 
     for file in folders:
         files += _getFiles(file, predicate)
@@ -59,12 +60,14 @@ def get_python_files(root_dir: str) -> List[str]:
     Returns:
         A list of Python filepaths relative to root_dir
     """
+
+    # Not language-agnostic, so keep it in this method
+    gae_lib_regex = re.compile('/appengine/(.+/)*lib/')
+
     return _getFiles(
         root_dir,
         lambda path: (
-            path.endswith('.py')
-            and 'lib' not in path
-            and 'appengine' not in path
+            path.endswith('.py') and not gae_lib_regex.search(path)
         )
     )
 
@@ -81,7 +84,8 @@ def get_drift_yaml_files(root_dir: str) -> List[str]:
     return _getFiles(
         root_dir,
         lambda path: (
-            path == '.drift-data.yml' or path == '.drift-data.yaml'
+            os.path.basename(path) == '.drift-data.yml'
+            or os.path.basename(path) == '.drift-data.yaml'
         )
     )
 
