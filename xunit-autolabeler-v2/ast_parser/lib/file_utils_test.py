@@ -82,7 +82,7 @@ class GetRegionTagsTest(unittest.TestCase):
 
         assert 'region_tag' in region_tags
 
-    def test_finds_region_tags_in_metadata(self):
+    def test_finds_region_tags_in_dockerfile(self):
         region_tags = file_utils.get_region_tags(TEST_DIR)
 
         assert 'dockerfile_tag' in region_tags
