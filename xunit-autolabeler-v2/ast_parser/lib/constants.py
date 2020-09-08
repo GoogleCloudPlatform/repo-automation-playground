@@ -14,6 +14,7 @@
 
 
 import re
+import os
 
 
 IGNORED_METHOD_NAMES = (
@@ -22,29 +23,51 @@ IGNORED_METHOD_NAMES = (
     'main'
 )
 
-REGION_TAG_GREP_ARGS = (
+
+__APPENGINE_LIB_REGEX = re.compile('appengine/(.+/)*lib')
+
+
+START_VERB_REGEX = re.compile('\\[START\\s(\\w+)\\]')
+
+
+def REGION_TAG_PREDICATE(path):
     'grep', '-hr', 'START', '.',
 
+    filename = os.path.basename(path)
+    extension = os.path.splitext(path)[1]
+
     # Language-specific arguments
-    '--include=*.py', '--exclude=*/appengine/**/lib/**/*.py',
-    '--include=*.js', '--exclude=*/node_modules/*',
+    if '/node_modules/' in f'/{path}/':
+        return False
 
-    # Webapps
-    '--include=*/appengine/**/*.html',
-    '--include=*/appengine/**/*.css',
-
-    # Metadata files
-    '--include=*.yaml',
-    '--include=*.yml',
-    '--include=requirements.txt',
-    '--include=requirements-dev.txt',
-    '--include=package.json',
-    '--include=config.json',
+    if __APPENGINE_LIB_REGEX.search(path):
+        return False
 
     # Dockerfiles
-    '--include=dockerfile',
-    '--include=Dockerfile',
-    '--include=DOCKERFILE',
-)
+    if 'dockerfile' in path.lower():
+        return True
 
-START_VERB_REGEX = re.compile('^START\\s')
+    # Webapps
+    if 'appengine' in path and extension in ['.html', '.css']:
+        return True
+
+    # Source code
+    if extension in ['.js', '.py']:
+        return True
+
+    # Metadata files
+    if extension in ['.yml', '.yaml']:
+        return True
+    if filename in [
+      'requirements.txt',
+      'requirements-dev.txt',
+      'package.json',
+      'config.json']:
+        return True
+
+    # Folders
+    if os.path.isdir(path):
+        return True
+
+    # Non-matching file
+    return False

@@ -17,12 +17,14 @@ from typing import List, Callable
 
 import re
 import os
-import subprocess
 
 from . import constants
 
 
-def _get_files(root_dir: str, predicate: Callable[[str], bool]) -> List[str]:
+def _get_file_paths(
+    root_dir: str,
+    predicate: Callable[[str], bool]
+) -> List[str]:
     """Recursively list the files in a given directory
        whose names match the provided predicate function
 
@@ -46,7 +48,7 @@ def _get_files(root_dir: str, predicate: Callable[[str], bool]) -> List[str]:
              and predicate(path)]
 
     for file in folders:
-        files += _get_files(file, predicate)
+        files += _get_file_paths(file, predicate)
 
     return files
 
@@ -64,7 +66,7 @@ def get_python_files(root_dir: str) -> List[str]:
     # Not language-agnostic, so keep it in this method
     gae_lib_regex = re.compile('/appengine/(.+/)*lib/')
 
-    return _get_files(
+    return _get_file_paths(
         root_dir,
         lambda path: (
             path.endswith('.py') and not gae_lib_regex.search(path)
@@ -81,7 +83,7 @@ def get_drift_yaml_files(root_dir: str) -> List[str]:
     Returns:
         A list of DRIFT yaml metadata filepaths relative to root_dir
     """
-    return _get_files(
+    return _get_file_paths(
         root_dir,
         lambda path: (
             os.path.basename(path) == '.drift-data.yml'
@@ -91,7 +93,7 @@ def get_drift_yaml_files(root_dir: str) -> List[str]:
 
 
 def get_region_tags(root_dir: str) -> List[str]:
-    """Recursively find the region tags in a directory using `grep`
+    """Recursively find the region tags in a directory
 
     Args:
         root_dir: the root directory to search from
@@ -99,18 +101,16 @@ def get_region_tags(root_dir: str) -> List[str]:
     Returns:
         The list of region tags found in root_dir
     """
-    proc = subprocess.Popen(
-        constants.REGION_TAG_GREP_ARGS,
-        stdout=subprocess.PIPE,
-        cwd=root_dir)
-    region_tags = proc.stdout.read().decode().split('\n')
+    file_paths = _get_file_paths(root_dir, constants.REGION_TAG_PREDICATE)
+    region_tags = set()
+    for path in file_paths:
+        with open(path, 'r') as file:
+            file_contents = file.read()
 
-    # Extract region tags from START clauses
-    # e.g. "[START some_tag]" --> "some_tag"
-    region_tags = [tag.lstrip('/#*').strip().strip('[]').strip()
-                   for tag in region_tags]
-    region_tags = [constants.START_VERB_REGEX.sub('', tag)
-                   for tag in region_tags]
-    region_tags = [tag for tag in region_tags if len(tag) > 1]
+            file_region_tags = \
+                constants.START_VERB_REGEX.findall(file_contents)
+            if file_region_tags:
+                file_region_tags = [match for match in file_region_tags]
+                region_tags = region_tags.union(set(file_region_tags))
 
-    return list(set(region_tags))
+    return list(region_tags)

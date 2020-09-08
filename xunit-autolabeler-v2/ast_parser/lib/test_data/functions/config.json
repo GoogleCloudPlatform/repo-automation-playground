@@ -12,5 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START appengine_lib]
-# [END appengine_lib]
+# [START config_json]
+{
+    'package': 'my-package'
+}
+# [END config_json]

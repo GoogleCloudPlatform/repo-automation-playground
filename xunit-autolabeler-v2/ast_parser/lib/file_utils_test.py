@@ -26,7 +26,8 @@ TEST_DIR = os.path.join(
 
 class GetFilesTest(unittest.TestCase):
     def test_getfiles_ignores_dotfiles(self):
-        files = file_utils._getFiles(TEST_DIR, lambda x: True)
+        files = file_utils._get_file_paths(
+            TEST_DIR, lambda x: True)
 
         assert 'dotfile_tag' not in str(files)
 
@@ -82,7 +83,58 @@ class GetRegionTagsTest(unittest.TestCase):
 
         assert 'region_tag' in region_tags
 
-    def test_finds_region_tags_in_dockerfile(self):
+    def test_includes_dockerfile_case_insensitive(self):
         region_tags = file_utils.get_region_tags(TEST_DIR)
 
-        assert 'dockerfile_tag' in region_tags
+        assert 'dockerfile_tag1' in region_tags
+        assert 'dockerfile_tag_odd_casing' in region_tags
+
+    def test_excludes_appengine_lib(self):
+        region_tags = file_utils.get_region_tags(TEST_DIR)
+
+        assert 'appengine_lib' not in region_tags
+
+    def test_includes_block_comments(self):
+        region_tags = file_utils.get_region_tags(TEST_DIR)
+
+        assert 'gae_block_comment_tag' in region_tags
+
+    def test_excludes_node_modules(self):
+        region_tags = file_utils.get_region_tags(TEST_DIR)
+
+        assert 'node_modules' not in region_tags
+
+    def test_includes_appengine_html(self):
+        region_tags = file_utils.get_region_tags(TEST_DIR)
+
+        assert 'gae_html_1' in region_tags
+        assert 'gae_html_2' in region_tags
+
+    def test_includes_appengine_css(self):
+        region_tags = file_utils.get_region_tags(TEST_DIR)
+
+        assert 'gae_css_1' in region_tags
+        assert 'gae_css_2' in region_tags
+
+    def test_excludes_webapps_outside_of_appengine(self):
+        region_tags = file_utils.get_region_tags(TEST_DIR)
+
+        assert 'css_outside_gae' not in region_tags
+        assert 'html_outside_gae' not in region_tags
+
+    def test_includes_yml_and_yaml(self):
+        region_tags = file_utils.get_region_tags(TEST_DIR)
+
+        assert 'yml_tag' in region_tags
+        assert 'yaml_tag' in region_tags
+
+    def test_includes_node_config_json_files(self):
+        region_tags = file_utils.get_region_tags(TEST_DIR)
+
+        assert 'package_json' in region_tags
+        assert 'config_json' in region_tags
+
+    def test_includes_directories_with_node_modules_suffix(self):
+        region_tags = file_utils.get_region_tags(TEST_DIR)
+
+        assert 'not_really_node_modules' in region_tags

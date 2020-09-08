@@ -12,4 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START dockerfile_tag]
+# [START dockerfile_tag1]
+# [END dockerfile_tag1]
