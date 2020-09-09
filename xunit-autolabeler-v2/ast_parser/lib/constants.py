@@ -31,8 +31,6 @@ START_VERB_REGEX = re.compile('\\[START\\s(\\w+)\\]')
 
 
 def REGION_TAG_PREDICATE(path):
-    'grep', '-hr', 'START', '.',
-
     filename = os.path.basename(path)
     extension = os.path.splitext(path)[1]
 
