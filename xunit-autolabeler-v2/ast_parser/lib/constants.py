@@ -24,13 +24,27 @@ IGNORED_METHOD_NAMES = (
 )
 
 
-__APPENGINE_LIB_REGEX = re.compile('appengine/(.+/)*lib')
+_APPENGINE_LIB_REGEX = re.compile(r'appengine/(.+/)*lib')
 
 
-START_VERB_REGEX = re.compile('\\[START\\s(\\w+)\\]')
+START_VERB_REGEX = re.compile(r'\[START\s(\w+)\]')
 
 
-def REGION_TAG_PREDICATE(path):
+def region_tag_predicate(path: str) -> bool:
+    """Determines whether a given file (or folder) path
+       should be searched for region tags.
+
+    Args:
+        path: the path to search
+
+    Returns:
+        True if the path's files and subfolders
+        should be searched, False otherwise.
+
+    Note:
+        If this function is called for a given folder path, it should
+        also be called (recursively) for both subfolders and files!
+    """
     filename = os.path.basename(path)
     extension = os.path.splitext(path)[1]
 
@@ -38,7 +52,7 @@ def REGION_TAG_PREDICATE(path):
     if '/node_modules/' in f'/{path}/':
         return False
 
-    if __APPENGINE_LIB_REGEX.search(path):
+    if _APPENGINE_LIB_REGEX.search(path):
         return False
 
     # Dockerfiles

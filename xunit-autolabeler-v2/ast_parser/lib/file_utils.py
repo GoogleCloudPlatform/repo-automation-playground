@@ -31,7 +31,7 @@ def _get_file_paths(
     Args:
         root_dir: the root directory to search from
         predicate: the predicate function
-                                       to filter filenames with
+                   to filter filenames with
 
     Returns:
         A list of filepaths relative to root_dir that match the predicate
@@ -64,7 +64,7 @@ def get_python_files(root_dir: str) -> List[str]:
     """
 
     # Not language-agnostic, so keep it in this method
-    gae_lib_regex = re.compile('/appengine/(.+/)*lib/')
+    gae_lib_regex = re.compile(r'/appengine/(.+/)*lib/')
 
     return _get_file_paths(
         root_dir,
@@ -101,7 +101,7 @@ def get_region_tags(root_dir: str) -> List[str]:
     Returns:
         The list of region tags found in root_dir
     """
-    file_paths = _get_file_paths(root_dir, constants.REGION_TAG_PREDICATE)
+    file_paths = _get_file_paths(root_dir, constants.region_tag_predicate)
     region_tags = set()
     for path in file_paths:
         with open(path, 'r') as file:
@@ -109,8 +109,8 @@ def get_region_tags(root_dir: str) -> List[str]:
 
             file_region_tags = \
                 constants.START_VERB_REGEX.findall(file_contents)
+
             if file_region_tags:
-                file_region_tags = [match for match in file_region_tags]
                 region_tags = region_tags.union(set(file_region_tags))
 
     return list(region_tags)
