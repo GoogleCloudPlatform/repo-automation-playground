@@ -25,9 +25,10 @@ def test_ignores_methods_with_existing_drift_attr():
     fake_method = MagicMock()
     fake_method.drift = '1234'
 
-    direct_invocation.parse([fake_method], 'my_class')
+    methods = direct_invocation.parse([fake_method], 'my_class')
 
     assert fake_method.drift == '1234'
+    assert methods == []  # there shouldn't be any processed methods
 
 
 def test_sets_drift_attr_for_methods_without_it():
