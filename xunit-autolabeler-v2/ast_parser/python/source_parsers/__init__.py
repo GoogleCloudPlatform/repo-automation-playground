@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+# Pytest imports relative to the module root, while python itself
+# imports relative to the importing file's directory. To remedy this
+# inconsistency, we use project-root based imports (for greater clarity)
+# and add the project root to PYTHONPATH
 import sys
 sys.path.append('..')
