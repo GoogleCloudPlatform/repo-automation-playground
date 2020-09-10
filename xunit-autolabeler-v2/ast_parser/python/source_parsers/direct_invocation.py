@@ -29,8 +29,9 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
     """
 
     methods = [x for x in nodes if
-               '.FunctionDef' in str(type(x)) and hasattr(x, 'name')]
-    methods = [x for x in methods if x.name not in IGNORED_METHOD_NAMES]
+               '.FunctionDef' in str(type(x)) and
+               hasattr(x, 'name') and
+               x.name not in IGNORED_METHOD_NAMES]
 
     # Avoid dupes - don't return already-labelled methods
     # (this function's result is concat-ed to other method lists!)

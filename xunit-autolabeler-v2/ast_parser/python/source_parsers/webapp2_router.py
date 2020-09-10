@@ -27,10 +27,10 @@ def parse(nodes: List[Any]) -> List[Any]:
         added language-agnostic data (in the 'drift' attribute)
     """
 
-    wsgi_configs = [x for x in nodes if hasattr(x, 'value')]
-    wsgi_configs = [x for x in wsgi_configs if hasattr(x.value, 'func')
-                    and hasattr(x.value.func, 'attr')]
-    wsgi_configs = [x for x in wsgi_configs if
+    wsgi_configs = [x for x in nodes if
+                    hasattr(x, 'value') and
+                    hasattr(x.value, 'func') and
+                    hasattr(x.value.func, 'attr') and
                     x.value.func.attr == 'WSGIApplication']
 
     class_name_url_map = {}
@@ -45,10 +45,11 @@ def parse(nodes: List[Any]) -> List[Any]:
 
             class_name_url_map[handler_class] = url
 
-    handlers = [x for x in nodes if hasattr(x, 'bases') and len(x.bases)]
-    handlers = [x for x in handlers if hasattr(x.bases[0], 'attr')]
-    handlers = [x for x in handlers if x.bases[0].attr == 'RequestHandler']
-    handlers = [x for x in handlers if x.name in class_name_url_map]
+    handlers = [x for x in nodes if
+                hasattr(x, 'bases') and len(x.bases) and
+                hasattr(x.bases[0], 'attr') and
+                x.bases[0].attr == 'RequestHandler' and
+                x.name in class_name_url_map]
 
     handler_methods = []
     for handler_class in handlers:
