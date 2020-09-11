@@ -17,7 +17,7 @@ from typing import Any, List
 
 
 from ast_parser.python.constants import FLASK_DEFAULT_METHODS
-from ast_parser.python.drift_data_object import DriftDataObject
+from ast_parser.python.drift_data_dict import make_drift_data_dict
 
 
 def parse(nodes: List[Any], class_name: str) -> List[Any]:
@@ -49,7 +49,7 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
             http_methods = [x.s.lower() for x in m_dec.keywords[0].value.elts]
 
         if not hasattr(method, 'drift'):
-            method.drift = DriftDataObject(
+            method.drift = make_drift_data_dict(
                 method.name,
                 class_name,
                 'flask_router',

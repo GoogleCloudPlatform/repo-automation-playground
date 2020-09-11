@@ -19,7 +19,6 @@ import pytest
 import unittest
 
 
-from ast_parser.python.drift_data_object import DriftDataObject
 from . import webapp2_router
 
 
@@ -40,7 +39,7 @@ class WebApp2RouterTests(unittest.TestCase):
             self.methods = webapp2_router.parse(self.nodes)
 
             self.class_names = \
-                [method.drift.class_name for method in self.methods]
+                [method.drift['class_name'] for method in self.methods]
 
     def test_detects_handlers_using_WSGIApplication_and_requestHandler(self):
         # This method should be the only detected one
@@ -51,17 +50,16 @@ class WebApp2RouterTests(unittest.TestCase):
 
         drift = first_method.drift
 
-        assert type(drift) == DriftDataObject
-        assert drift.url == '/'
-        assert drift.webapp2_http_method == 'get'
-        assert drift.name == 'get'
+        assert drift['url'] == '/'
+        assert drift['webapp2_http_method'] == 'get'
+        assert drift['name'] == 'get'
 
-        assert drift.class_name == 'ValidRoute'
-        assert drift.parser == 'webapp2_router'
-        assert drift.start_line == 36
+        assert drift['class_name'] == 'ValidRoute'
+        assert drift['parser'] == 'webapp2_router'
+        assert drift['start_line'] == 36
 
         # Make sure flask_http_methods wasn't accidentally set
-        assert drift.flask_http_methods == []
+        assert drift['flask_http_methods'] == []
 
     def test_ignores_WSGIApplication_nodes_without_webapp2(self):
         assert 'RouteWithoutProperSubclass' not in self.class_names
