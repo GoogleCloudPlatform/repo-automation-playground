@@ -1,4 +1,4 @@
-name: P3 CI [source_parsers]
+name: P3 CI [xunit-autolabeler-v2/ast_parser]
 
 on:
   push:
