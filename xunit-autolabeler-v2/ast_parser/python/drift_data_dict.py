@@ -13,9 +13,6 @@
 # limitations under the License.
 
 
-import json
-
-
 def make_drift_data_dict(
     name,
     class_name,
