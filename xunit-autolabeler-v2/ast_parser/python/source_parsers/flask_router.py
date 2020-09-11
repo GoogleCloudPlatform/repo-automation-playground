@@ -14,7 +14,10 @@
 
 
 from typing import Any, List
+
+
 from ast_parser.python.constants import FLASK_DEFAULT_METHODS
+from ast_parser.python.drift_data_object import DriftDataObject
 
 
 def parse(nodes: List[Any], class_name: str) -> List[Any]:
@@ -28,12 +31,13 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
         language-agnostic data (in the 'drift' attribute)
     """
 
-    routes = [x for x in nodes if hasattr(x, 'decorator_list')]
-    routes = [x for x in routes if x.decorator_list]
-    routes = [x for x in routes if hasattr(x.decorator_list[0], 'func')]
-    routes = [x for x in routes if hasattr(x.decorator_list[0].func, 'attr')]
-    routes = [x for x in routes if x.decorator_list[0].func.attr == 'route']
-    routes = [x for x in routes if x.decorator_list[0].args]
+    routes = [x for x in nodes if
+              hasattr(x, 'decorator_list') and
+              x.decorator_list and
+              hasattr(x.decorator_list[0], 'func') and
+              hasattr(x.decorator_list[0].func, 'attr') and
+              x.decorator_list[0].func.attr == 'route' and
+              x.decorator_list[0].args]
 
     for method in routes:
         m_dec = method.decorator_list[0]
@@ -45,18 +49,15 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
             http_methods = [x.s.lower() for x in m_dec.keywords[0].value.elts]
 
         if not hasattr(method, 'drift'):
-            method.drift = {
-                # Flask-specific properties
-                'url': url,
-                'method_name': method.name,
-                'http_methods': http_methods,
-
-                # Generic properties
-                'parser': 'flask_router',
-                'name': method.name,
-                'class_name': class_name,
-                'start_line': method.lineno,
-            }
+            method.drift = DriftDataObject(
+                method.name,
+                class_name,
+                'flask_router',
+                method.lineno,
+                method.name,
+                url,
+                flask_http_methods=http_methods
+            )
         else:
             # Possible cause: method was labelled by another source parser
             raise ValueError('Already-labelled method found!')

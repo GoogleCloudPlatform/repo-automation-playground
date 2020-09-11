@@ -14,6 +14,9 @@
 
 
 from typing import Any, List
+
+
+from ast_parser.python.drift_data_object import DriftDataObject
 from ast_parser.lib.constants import IGNORED_METHOD_NAMES
 
 
@@ -39,16 +42,13 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
     methods = [x for x in methods if not hasattr(x, 'drift')]
 
     for m in methods:
-        m.drift = {
-            # (Directly invoked methods have
-            #  no parser-specific properties)
-
-            # Generic properties
-            'name': m.name,
-            'class_name': class_name,
-            'method_name': m.name,
-            'parser': 'direct_invocation',
-            'start_line': m.lineno,
-        }
+        # Directly invoked methods have no parser-specific properties
+        m.drift = DriftDataObject(
+            m.name,
+            class_name,
+            'direct_invocation',
+            m.lineno,
+            method_name=m.name
+        )
 
     return methods

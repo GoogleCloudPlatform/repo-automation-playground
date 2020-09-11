@@ -21,6 +21,10 @@ app = Flask(__name__)
 
 # This is a valid Flask decorator, but it isn't used in
 # our samples and is thus ignored by the flask_router parser
+#
+# This subpackage's tests depend on this behavior, and
+# will need updating if support *is* added in the future.
+#
 # Relevant doc page:
 #   https://flask.palletsprojects.com/en/1.1.x/patterns/viewdecorators/
 app.url_map.add(Rule('/unknown', endpoint='index'))

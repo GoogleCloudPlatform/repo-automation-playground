@@ -16,6 +16,9 @@
 from typing import Any, List
 
 
+from ast_parser.python.drift_data_object import DriftDataObject
+
+
 def parse(nodes: List[Any]) -> List[Any]:
     """Identify webapp2 route-handling snippets in Python
        files and extract their language-agnostic data
@@ -55,17 +58,15 @@ def parse(nodes: List[Any]) -> List[Any]:
     for handler_class in handlers:
         temp_methods = [x for x in handler_class.body if hasattr(x, 'name')]
         for m in temp_methods:
-            m.drift = {
-                # webapp2-specific properties
-                'url': class_name_url_map[handler_class.name],
-                'http_method': m.name,
+            m.drift = DriftDataObject(
+                m.name,
+                handler_class.name,
+                'webapp2_router',
+                m.lineno,
+                webapp2_http_method=m.name,
+                url=class_name_url_map[handler_class.name]
+            )
 
-                # Generic properties
-                'name': m.name,
-                'class_name': handler_class.name,
-                'parser': 'webapp2_router',
-                'start_line': m.lineno
-            }
         handler_methods += temp_methods
 
     return handler_methods

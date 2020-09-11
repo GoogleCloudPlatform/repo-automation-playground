@@ -16,8 +16,11 @@
 import ast
 import os
 
+
 from unittest.mock import MagicMock
 
+
+from ast_parser.python.drift_data_object import DriftDataObject
 from . import direct_invocation
 
 
@@ -49,8 +52,10 @@ def test_sets_drift_attr_for_methods_without_it():
     assert hasattr(first_method, 'drift')
 
     drift = first_method.drift
-    assert drift['name'] == 'some_method'
-    assert drift['method_name'] == 'some_method'
-    assert drift['class_name'] == 'direct_invocation_example'
-    assert drift['parser'] == 'direct_invocation'
-    assert drift['start_line'] == 16
+
+    assert type(drift) == DriftDataObject
+    assert drift.name == 'some_method'
+    assert drift.method_name == 'some_method'
+    assert drift.class_name == 'direct_invocation_example'
+    assert drift.parser == 'direct_invocation'
+    assert drift.start_line == 16

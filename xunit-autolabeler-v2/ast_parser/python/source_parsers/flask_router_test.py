@@ -19,6 +19,7 @@ import pytest
 import unittest
 
 
+from ast_parser.python.drift_data_object import DriftDataObject
 from . import flask_router
 
 
@@ -39,7 +40,7 @@ def _create_fixture(example_path):
             self.methods = flask_router.parse(
                 self.nodes, 'test_flask_class')
             self.method_names = \
-                [method.drift['name'] for method in self.methods]
+                [method.drift.name for method in self.methods]
 
     return init
 
@@ -66,13 +67,15 @@ class DecoratorTests(unittest.TestCase):
         assert hasattr(first_method, 'drift')
 
         drift = first_method.drift
-        assert drift['method_name'] == 'valid_route'
-        assert drift['name'] == 'valid_route'
-        assert drift['url'] == '/valid'
 
-        assert drift['parser'] == 'flask_router'
-        assert drift['class_name'] == 'test_flask_class'
-        assert drift['start_line'] == 43
+        assert type(drift) == DriftDataObject
+        assert drift.method_name == 'valid_route'
+        assert drift.name == 'valid_route'
+        assert drift.url == '/valid'
+
+        assert drift.parser == 'flask_router'
+        assert drift.class_name == 'test_flask_class'
+        assert drift.start_line == 47
 
         # Don't check http_methods here
         # (covered in HttpMethodTests)
@@ -90,18 +93,24 @@ class HttpMethodTests(unittest.TestCase):
         first_method = self.methods[0]
 
         assert hasattr(first_method, 'drift')
-        assert first_method.drift['name'] == 'default_methods'
+
+        drift = first_method.drift
+        assert type(drift) == DriftDataObject
+        assert drift.name == 'default_methods'
 
         # method list is a hard-coded copy of:
         #   ast_parser.python.constants.FLASK_DEFAULT_METHODS
-        assert first_method.drift['http_methods'] == ['get']
+        assert drift.flask_http_methods == ['get']
 
     def test_detects_provided_http_methods(self):
         second_method = self.methods[-1]
 
         assert hasattr(second_method, 'drift')
-        assert second_method.drift['name'] == 'put_or_patch'
-        assert second_method.drift['http_methods'] == ['put', 'patch']
+
+        drift = second_method.drift
+        assert type(drift) == DriftDataObject
+        assert drift.name == 'put_or_patch'
+        assert drift.flask_http_methods == ['put', 'patch']
 
 
 class MiscTests(unittest.TestCase):
