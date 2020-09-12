@@ -34,12 +34,13 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
     methods = [node for node in nodes if
                '.FunctionDef' in str(type(node)) and
                hasattr(node, 'name') and
-               node.name not in IGNORED_METHOD_NAMES]
-
-    # Avoid dupes - don't return already-labelled methods
-    # (this function's result is concat-ed to other method lists!)
-    # --> This works because 'methods' contains global references
-    methods = [node for node in methods if not hasattr(node, 'drift')]
+               node.name not in IGNORED_METHOD_NAMES and
+               """
+               Avoid dupes - don't return already-labelled methods
+               (this function's result is concat-ed to other method lists!)
+               --> This works because 'methods' contains global references
+               """
+               if not hasattr(node, 'drift')]
 
     for method in methods:
         # Directly invoked methods have no parser-specific properties
