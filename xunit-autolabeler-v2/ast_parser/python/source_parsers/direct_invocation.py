@@ -31,24 +31,24 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
         language-agnostic data (in the 'drift' attribute)
     """
 
-    methods = [x for x in nodes if
-               '.FunctionDef' in str(type(x)) and
-               hasattr(x, 'name') and
-               x.name not in IGNORED_METHOD_NAMES]
+    methods = [node for node in nodes if
+               '.FunctionDef' in str(type(node)) and
+               hasattr(node, 'name') and
+               node.name not in IGNORED_METHOD_NAMES]
 
     # Avoid dupes - don't return already-labelled methods
     # (this function's result is concat-ed to other method lists!)
     # --> This works because 'methods' contains global references
-    methods = [x for x in methods if not hasattr(x, 'drift')]
+    methods = [node for node in methods if not hasattr(node, 'drift')]
 
-    for m in methods:
+    for method in methods:
         # Directly invoked methods have no parser-specific properties
-        m.drift = make_drift_data_dict(
-            m.name,
+        method.drift = make_drift_data_dict(
+            method.name,
             class_name,
             'direct_invocation',
-            m.lineno,
-            method_name=m.name
+            method.lineno,
+            method_name=method.name
         )
 
     return methods

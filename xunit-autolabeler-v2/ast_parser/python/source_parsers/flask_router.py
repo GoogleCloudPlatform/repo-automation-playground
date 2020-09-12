@@ -31,13 +31,13 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
         language-agnostic data (in the 'drift' attribute)
     """
 
-    routes = [x for x in nodes if
-              hasattr(x, 'decorator_list') and
-              x.decorator_list and
-              hasattr(x.decorator_list[0], 'func') and
-              hasattr(x.decorator_list[0].func, 'attr') and
-              x.decorator_list[0].func.attr == 'route' and
-              x.decorator_list[0].args]
+    routes = [node for node in nodes if
+              hasattr(node, 'decorator_list') and
+              node.decorator_list and
+              hasattr(node.decorator_list[0], 'func') and
+              hasattr(node.decorator_list[0].func, 'attr') and
+              node.decorator_list[0].func.attr == 'route' and
+              node.decorator_list[0].args]
 
     for method in routes:
         m_dec = method.decorator_list[0]
@@ -46,7 +46,8 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
 
         http_methods = list(FLASK_DEFAULT_METHODS)
         if m_dec.keywords and m_dec.keywords[0].arg == 'methods':
-            http_methods = [x.s.lower() for x in m_dec.keywords[0].value.elts]
+            http_methods = [elem.s.lower() for elem
+                            in m_dec.keywords[0].value.elts]
 
         if not hasattr(method, 'drift'):
             method.drift = make_drift_data_dict(
@@ -68,4 +69,5 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
             # has been violated and we raise an error.
             raise ValueError('Already-labelled method found!')
 
-    return [x for x in routes if hasattr(x, 'drift')]
+    return [route for route in routes
+            if hasattr(route, 'drift')]
