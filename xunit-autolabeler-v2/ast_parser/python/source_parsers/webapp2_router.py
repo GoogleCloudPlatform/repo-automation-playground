@@ -30,42 +30,53 @@ def parse(nodes: List[Any]) -> List[Any]:
         added language-agnostic data (in the 'drift' attribute)
     """
 
-    wsgi_configs = [x for x in nodes if
-                    hasattr(x, 'value') and
-                    hasattr(x.value, 'func') and
-                    hasattr(x.value.func, 'attr') and
-                    x.value.func.attr == 'WSGIApplication']
+    wsgi_configs = [node for node in nodes if
+                    hasattr(node, 'value') and
+                    hasattr(node.value, 'func') and
+                    hasattr(node.value.func, 'attr') and
+                    node.value.func.attr == 'WSGIApplication']
 
     class_name_url_map = {}
-    for m in wsgi_configs:
-        m.drift = {}
-        arg = m.value.args[0]
+    for method in wsgi_configs:
+        method.drift = {}
+        arg = method.value.args[0]
 
-        elts_args = [x for x in arg.elts if hasattr(x, 'elts')]
+        elts_args = [elem for elem in arg.elts if hasattr(elem, 'elts')]
         for elem in elts_args:
             url = elem.elts[0].s
             handler_class = elem.elts[1].id
 
             class_name_url_map[handler_class] = url
 
-    handlers = [x for x in nodes if
-                hasattr(x, 'bases') and len(x.bases) and
-                hasattr(x.bases[0], 'attr') and
-                x.bases[0].attr == 'RequestHandler' and
-                x.name in class_name_url_map]
+    handlers = [node for node in nodes if
+                hasattr(node, 'bases') and len(node.bases) and
+                hasattr(node.bases[0], 'attr') and
+                node.bases[0].attr == 'RequestHandler' and
+                node.name in class_name_url_map]
 
     handler_methods = []
     for handler_class in handlers:
-        temp_methods = [x for x in handler_class.body if hasattr(x, 'name')]
-        for m in temp_methods:
-            m.drift = make_drift_data_dict(
-                m.name,
-                handler_class.name,
-                'webapp2_router',
-                m.lineno,
-                webapp2_http_method=m.name,
-                url=class_name_url_map[handler_class.name]
-            )
+        temp_methods = [node for node in handler_class.body
+                        if hasattr(node, 'name')]
+        for method in temp_methods:
+            if not hasattr(method, 'drift'):
+                method.drift = make_drift_data_dict(
+                    method.name,
+                    handler_class.name,
+                    'webapp2_router',
+                    method.lineno,
+                    webapp2_http_method=method.name,
+                    url=class_name_url_map[handler_class.name]
+                )
+            else:
+                # webapp2 methods can match other parsers' method definitions
+                #
+                # This webapp2-specific parser is supposed to take priority
+                # over more generic parsers, and label such methods first.
+                #
+                # If those methods have already been labelled, this constraint
+                # has been violated and we raise an error.
+                raise ValueError('Already-labelled method found!')
 
         handler_methods += temp_methods
 

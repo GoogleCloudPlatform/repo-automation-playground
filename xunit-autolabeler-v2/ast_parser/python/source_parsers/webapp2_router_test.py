@@ -19,7 +19,7 @@ import pytest
 import unittest
 
 
-from . import webapp2_router
+from . import webapp2_router, direct_invocation
 
 
 class WebApp2RouterTests(unittest.TestCase):
@@ -66,3 +66,21 @@ class WebApp2RouterTests(unittest.TestCase):
 
     def test_ignores_handlers_without_requesthandler_base_class(self):
         assert 'RouteWithoutWSGIApplicationReference' not in self.class_names
+
+    def test_webapp2_router_errors_on_already_labelled_method(self):
+        # Trick the direct invocation parser into detecting webapp2 routes
+        method_nodes = [class_node.body[0] for class_node in self.nodes if
+                        hasattr(class_node, 'body') and class_node.body]
+
+        direct_invocation.parse(method_nodes, 'direct_invocation_example')
+
+        # Propagate incorrect labels to parent classes
+        # (Makes no sense in actual code, but easy way to generate test data)
+        for class_node in self.nodes:
+            if hasattr(class_node, 'body') and class_node.body and \
+               hasattr(class_node.body[0], 'drift'):
+                class_node.drift = class_node.body[0].drift
+
+        with self.assertRaisesRegex(ValueError,
+                                    'Already-labelled method found!'):
+            webapp2_router.parse(self.nodes)

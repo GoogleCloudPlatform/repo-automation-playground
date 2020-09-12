@@ -59,7 +59,13 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
                 flask_http_methods=http_methods
             )
         else:
-            # Possible cause: method was labelled by another source parser
+            # Flask methods can match other parsers' method definitions
+            #
+            # This Flask-specific parser is supposed to take priority
+            # over more generic parsers, and label such methods first.
+            #
+            # If those methods have already been labelled, this constraint
+            # has been violated and we raise an error.
             raise ValueError('Already-labelled method found!')
 
     return [x for x in routes if hasattr(x, 'drift')]
