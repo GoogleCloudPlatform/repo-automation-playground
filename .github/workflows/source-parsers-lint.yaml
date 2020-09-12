@@ -15,6 +15,6 @@ jobs:
     - name: CI build
       env:
         TEST_ENV: test
-        TRAMPOLINE_BUILD_FILE: ci-cd/p3_temp/lint_ast_parser.sh
+        TRAMPOLINE_BUILD_FILE: ci-cd/p3_temp/lint_ast_parser.sh  # p3 = python polyglot parser
         TRAMPOLINE_IMAGE: gcr.io/cloud-devrel-public-resources/docker-ci-helper/python
       run: ${GITHUB_WORKSPACE}/ci-cd/trampoline_v2.sh
