@@ -27,4 +27,4 @@ pip install --user -r requirements-dev.txt
 flake8
 
 # Type hints
-mypy
+mypy **/*.py --ignore-missing-imports
