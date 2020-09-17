@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import List, Callable
+from typing import List, Callable, Set
 
 import re
 import os
@@ -102,7 +102,7 @@ def get_region_tags(root_dir: str) -> List[str]:
         The list of region tags found in root_dir
     """
     file_paths = _get_file_paths(root_dir, constants.region_tag_predicate)
-    region_tags = set()
+    region_tags: Set[str] = set()
     for path in file_paths:
         with open(path, 'r') as file:
             file_contents = file.read()
