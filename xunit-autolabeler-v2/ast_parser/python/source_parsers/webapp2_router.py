@@ -13,10 +13,53 @@
 # limitations under the License.
 
 
-from typing import Any, List
+from typing import Any, Dict, List
 
 
 from ast_parser.python import drift_data_tuple
+
+
+def _is_wsgi_config(node: Any) -> bool:
+    if not hasattr(node, 'value'):
+        return False
+
+    if not hasattr(node.value, 'func'):
+        return False
+
+    if not hasattr(node.value.func, 'attr'):
+        return False
+
+    if not node.value.func.attr == 'WSGIApplication':
+        return False
+
+    if not hasattr(node.value, 'args'):
+        return False
+
+    if not len(node.value.args):
+        return False
+
+    return True
+
+
+def _is_webapp2_handler(
+    node: Any, class_name_url_map: Dict[str, str]
+) -> bool:
+    if not hasattr(node, 'bases'):
+        return False
+
+    if not len(node.bases):
+        return False
+
+    if not hasattr(node.bases[0], 'attr'):
+        return False
+
+    if not node.bases[0].attr == 'RequestHandler':
+        return False
+
+    if node.name not in class_name_url_map:
+        return False
+
+    return True
 
 
 def parse(nodes: List[Any]) -> List[Any]:
@@ -30,18 +73,16 @@ def parse(nodes: List[Any]) -> List[Any]:
         added language-agnostic data (in the 'drift' attribute)
     """
 
-    wsgi_configs = [node for node in nodes if
-                    hasattr(node, 'value') and
-                    hasattr(node.value, 'func') and
-                    hasattr(node.value.func, 'attr') and
-                    node.value.func.attr == 'WSGIApplication']
+    wsgi_configs = [node for node in nodes if _is_wsgi_config(node)]
 
     class_name_url_map = {}
     for method in wsgi_configs:
         method.drift = {}
         arg = method.value.args[0]
 
-        elts_args = [elem for elem in arg.elts if hasattr(elem, 'elts')]
+        elts_args = [elem for elem in arg.elts
+                     if hasattr(elem, 'elts')
+                     and len(elem.elts) >= 2]
         for elem in elts_args:
             url = elem.elts[0].s
             handler_class = elem.elts[1].id
@@ -49,10 +90,7 @@ def parse(nodes: List[Any]) -> List[Any]:
             class_name_url_map[handler_class] = url
 
     handlers = [node for node in nodes if
-                hasattr(node, 'bases') and len(node.bases) and
-                hasattr(node.bases[0], 'attr') and
-                node.bases[0].attr == 'RequestHandler' and
-                node.name in class_name_url_map]
+                _is_webapp2_handler(node, class_name_url_map)]
 
     handler_methods = []
     for handler_class in handlers:

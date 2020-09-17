@@ -19,6 +19,28 @@ from typing import Any, List
 from ast_parser.python import constants, drift_data_tuple
 
 
+def _is_flask_route(node: Any) -> bool:
+    if not hasattr(node, 'decorator_list'):
+        return False
+
+    if not node.decorator_list:
+        return False
+
+    if not hasattr(node.decorator_list[0], 'func'):
+        return False
+
+    if not hasattr(node.decorator_list[0].func, 'attr'):
+        return False
+
+    if not node.decorator_list[0].func.attr == 'route':
+        return False
+
+    if not node.decorator_list[0].args:
+        return False
+
+    return True
+
+
 def parse(
     nodes: List[Any],
     class_name: str
@@ -33,13 +55,7 @@ def parse(
         language-agnostic data (in the 'drift' attribute)
     """
 
-    routes = [node for node in nodes if
-              hasattr(node, 'decorator_list') and
-              node.decorator_list and
-              hasattr(node.decorator_list[0], 'func') and
-              hasattr(node.decorator_list[0].func, 'attr') and
-              node.decorator_list[0].func.attr == 'route' and
-              node.decorator_list[0].args]
+    routes = [node for node in nodes if _is_flask_route(node)]
 
     for method in routes:
         m_dec = method.decorator_list[0]

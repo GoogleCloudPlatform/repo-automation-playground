@@ -20,6 +20,27 @@ from ast_parser.python import drift_data_tuple
 from ast_parser.lib import constants
 
 
+def _is_unique_method(node: Any) -> bool:
+    if '.FunctionDef' not in str(type(node)):
+        return False
+
+    if not hasattr(node, 'name'):
+        return False
+
+    if node.name in constants.IGNORED_METHOD_NAMES:
+        return False
+
+    """
+    Avoid dupes - don't return already-labelled methods
+    (this function's result is concat-ed to other method lists!)
+    --> This works because 'methods' contains global references
+    """
+    if hasattr(node, 'drift'):
+        return False
+
+    return True
+
+
 def parse(
   nodes: List[Any],
   class_name: str
@@ -34,16 +55,7 @@ def parse(
         language-agnostic data (in the 'drift' attribute)
     """
 
-    methods = [node for node in nodes if
-               '.FunctionDef' in str(type(node)) and
-               hasattr(node, 'name') and
-               node.name not in constants.IGNORED_METHOD_NAMES and
-               """
-               Avoid dupes - don't return already-labelled methods
-               (this function's result is concat-ed to other method lists!)
-               --> This works because 'methods' contains global references
-               """
-               if not hasattr(node, 'drift')]
+    methods = [node for node in nodes if _is_unique_method(node)]
 
     for method in methods:
         # Directly invoked methods have no parser-specific properties
