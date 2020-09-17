@@ -27,4 +27,7 @@ pip install --user -r requirements-dev.txt
 flake8
 
 # Type hints
-mypy **/*.py --ignore-missing-imports
+#   Must be separate commands to avoid duplicate module error
+#   See https://github.com/python/mypy/issues/4008#issuecomment-332032784
+mypy */*.py --ignore-missing-imports
+mypy */*/*.py --ignore-missing-imports
