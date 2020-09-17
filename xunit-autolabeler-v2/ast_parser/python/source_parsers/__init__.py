@@ -16,12 +16,3 @@
 # imports relative to the importing file's directory. To remedy this
 # inconsistency, we use project-root based imports (for greater clarity)
 # and add the project root to PYTHONPATH
-
-# import sys
-
-"""TODO(ace-n):
-
-This is commented out for now, but likely will
-be necessary when python_bootstrap.py is added
-"""
-# sys.path.append('..')

@@ -16,11 +16,13 @@
 from typing import Any, List
 
 
-from ast_parser.python.constants import FLASK_DEFAULT_METHODS
-from ast_parser.python.drift_data_dict import make_drift_data_dict
+from ast_parser.python import constants, drift_data_tuple
 
 
-def parse(nodes: List[Any], class_name: str) -> List[Any]:
+def parse(
+    nodes: List[Any],
+    class_name: str
+) -> List[Any]:
     """Identify Flask route-handling snippets in Python
        files and extract their language-agnostic data
     Args:
@@ -44,13 +46,13 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
         m_args = m_dec.args
         url = m_args[0].s
 
-        http_methods = list(FLASK_DEFAULT_METHODS)
+        http_methods = list(constants.FLASK_DEFAULT_METHODS)
         if m_dec.keywords and m_dec.keywords[0].arg == 'methods':
             http_methods = [elem.s.lower() for elem
                             in m_dec.keywords[0].value.elts]
 
         if not hasattr(method, 'drift'):
-            method.drift = make_drift_data_dict(
+            method.drift = drift_data_tuple.DriftData(
                 method.name,
                 class_name,
                 'flask_router',

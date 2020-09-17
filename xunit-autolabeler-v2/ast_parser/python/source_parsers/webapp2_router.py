@@ -16,7 +16,7 @@
 from typing import Any, List
 
 
-from ast_parser.python.drift_data_dict import make_drift_data_dict
+from ast_parser.python import drift_data_tuple
 
 
 def parse(nodes: List[Any]) -> List[Any]:
@@ -60,7 +60,7 @@ def parse(nodes: List[Any]) -> List[Any]:
                         if hasattr(node, 'name')]
         for method in temp_methods:
             if not hasattr(method, 'drift'):
-                method.drift = make_drift_data_dict(
+                method.drift = drift_data_tuple.DriftData(
                     method.name,
                     handler_class.name,
                     'webapp2_router',

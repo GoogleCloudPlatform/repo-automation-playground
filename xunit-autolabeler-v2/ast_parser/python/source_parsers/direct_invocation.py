@@ -16,11 +16,14 @@
 from typing import Any, List
 
 
-from ast_parser.python.drift_data_dict import make_drift_data_dict
-from ast_parser.lib.constants import IGNORED_METHOD_NAMES
+from ast_parser.python import drift_data_tuple
+from ast_parser.lib import constants
 
 
-def parse(nodes: List[Any], class_name: str) -> List[Any]:
+def parse(
+  nodes: List[Any],
+  class_name: str
+) -> List[Any]:
     """Identify directly-invoked snippet methods in Python
        files and extract their language-agnostic data
     Args:
@@ -34,7 +37,7 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
     methods = [node for node in nodes if
                '.FunctionDef' in str(type(node)) and
                hasattr(node, 'name') and
-               node.name not in IGNORED_METHOD_NAMES and
+               node.name not in constants.IGNORED_METHOD_NAMES and
                """
                Avoid dupes - don't return already-labelled methods
                (this function's result is concat-ed to other method lists!)
@@ -44,7 +47,7 @@ def parse(nodes: List[Any], class_name: str) -> List[Any]:
 
     for method in methods:
         # Directly invoked methods have no parser-specific properties
-        method.drift = make_drift_data_dict(
+        method.drift = drift_data_tuple.DriftData(
             method.name,
             class_name,
             'direct_invocation',

@@ -13,23 +13,15 @@
 # limitations under the License.
 
 
-def make_drift_data_dict(
-    name,
-    class_name,
-    parser,
-    start_line,
-    method_name=None,
-    url=None,
-    flask_http_methods=[],
-    webapp2_http_method=None
-):
-    return {
-        'name': name,
-        'class_name': class_name,
-        'method_name': method_name,
-        'parser': parser,
-        'start_line': start_line,
-        'url': url,
-        'flask_http_methods': flask_http_methods,
-        'webapp2_http_method': webapp2_http_method
-    }
+from typing import List, NamedTuple
+
+
+class DriftData(NamedTuple):
+    name: str
+    class_name: str
+    parser: str
+    start_line: int
+    method_name: str = None
+    url: str = None
+    flask_http_methods: List[str] = []
+    webapp2_http_method: str = None
