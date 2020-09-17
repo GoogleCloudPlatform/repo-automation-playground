@@ -22,4 +22,9 @@ export PATH="${HOME}/.local/bin:${PATH}"
 pip install --user -r requirements.txt
 pip install --user -r requirements-dev.txt
 
+
+# Generic lint
 flake8
+
+# Type hints
+mypy
