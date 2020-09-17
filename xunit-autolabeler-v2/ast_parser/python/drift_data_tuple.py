@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Optional
 
 
 class DriftData(NamedTuple):
@@ -21,7 +21,7 @@ class DriftData(NamedTuple):
     class_name: str
     parser: str
     start_line: int
-    method_name: str = None
-    url: str = None
+    method_name: Optional[str] = None
+    url: Optional[str] = None
     flask_http_methods: List[str] = []
-    webapp2_http_method: str = None
+    webapp2_http_method: Optional[str] = None

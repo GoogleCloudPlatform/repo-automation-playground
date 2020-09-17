@@ -39,7 +39,7 @@ def route_unknown_decorator():
     return 'OK'
 
 
-@app.route()
+@app.route()  # type: ignore
 def route_no_args():
     return 'OK'
 
