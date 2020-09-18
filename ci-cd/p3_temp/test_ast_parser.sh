@@ -22,4 +22,6 @@ export PATH="${HOME}/.local/bin:${PATH}"
 pip install --user -r requirements.txt
 pip install --user -r requirements-dev.txt
 
-pytest .
+pytest . \
+    --ignore python/test_data \
+    --ignore python/source_parsers/test_data
