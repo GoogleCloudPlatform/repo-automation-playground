@@ -1,0 +1,20 @@
+name: P3 CI [xunit-autolabeler-v2/ast_parser]
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  my-job:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: CI build
+      env:
+        TEST_ENV: test
+        TRAMPOLINE_BUILD_FILE: ci-cd/p3_temp/lint_ast_parser.sh  # p3 = python polyglot parser
+        TRAMPOLINE_IMAGE: gcr.io/cloud-devrel-public-resources/docker-ci-helper/python
+      run: ${GITHUB_WORKSPACE}/ci-cd/trampoline_v2.sh
