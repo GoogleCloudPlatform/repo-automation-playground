@@ -42,16 +42,16 @@ exports.parse = (
       entireCmd = entireCmd.quasis || [entireCmd];
 
       const [subCmd] = entireCmd
-        .filter((c) => c.value)
+        .filter((cmdPart) => cmdPart.value)
         .map(
-          (c) =>
-            (c.value.raw === undefined ? c.value : c.value.raw)
+          (cmdPart) =>
+            (cmdPart.value.raw === undefined ? cmdPart.value : cmdPart.value.raw)
               .replace("/", " ") // HACK: some snippets (e.g. nodejs-vision) use slashes in weird places
               .replace(/(^\s+|\s+$)/g, "")
               .replace(/(^node\s|\.js)/g, "") // for e.g. `node file.js` instead of `node file cmd``
               .split(" ")[0]
         )
-        .filter((c) => c);
+        .filter((cmdPart) => cmdPart);
 
       if (!subCmd) {
         return;

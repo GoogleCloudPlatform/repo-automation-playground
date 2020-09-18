@@ -17,20 +17,20 @@
 exports.parse = (sourceTokens, sourcePath) => {
   const gcfMethods = sourceTokens.body
     .filter(
-      (f) =>
-        f.type === "ExpressionStatement" &&
-        f.expression.type === "AssignmentExpression"
+      (expr) =>
+        expr.type === "ExpressionStatement" &&
+        expr.expression.type === "AssignmentExpression"
     )
-    .map((f) => f.expression)
-    .filter((f) => f.left.object.name === "exports");
+    .map((expr) => f.expression)
+    .filter((expr) => f.left.object.name === "exports");
 
-  gcfMethods.forEach((m) => {
-    m.drift = {
-      functionName: m.left.property.name,
-      name: m.left.property.name,
+  gcfMethods.forEach((method) => {
+    method.drift = {
+      functionName: method.left.property.name,
+      name: method.left.property.name,
       sourcePath,
-      startLine: m.loc.start.line,
-      endLine: m.loc.end.line,
+      startLine: method.loc.start.line,
+      endLine: method.loc.end.line,
       parser: "cloudFunction",
     };
   });

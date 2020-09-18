@@ -18,10 +18,10 @@ const { EXPRESS_METHOD_NAMES } = require("../../constants");
 
 exports.parse = (sourceTokens, sourcePath) => {
   const expressMethods = sourceTokens.body
-    .filter((f) => f.type === "ExpressionStatement" && f.expression.callee)
-    .map((f) => f.expression)
-    .filter((f) =>
-      EXPRESS_METHOD_NAMES.includes(f.callee.property && f.callee.property.name)
+    .filter((expr) => expr.type === "ExpressionStatement" && expr.expression.callee)
+    .map((expr) => expr.expression)
+    .filter((expr) =>
+      EXPRESS_METHOD_NAMES.includes(expr.callee.property && expr.callee.property.name)
     );
 
   expressMethods.forEach((method) => {

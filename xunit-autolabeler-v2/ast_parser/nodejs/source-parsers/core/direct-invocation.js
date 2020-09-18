@@ -16,23 +16,23 @@
 
 exports.parse = (sourceTokens, sourcePath) => {
   let snippetMethods = sourceTokens.body.map(
-    (x) => (x.declarations && x.declarations[0]) || x
+    (expr) => (expr.declarations && expr.declarations[0]) || expr
   );
   snippetMethods = snippetMethods.filter(
-    (f) => f.id && f.id.name && f.id.name !== "main"
+    (expr) => expr.id && expr.id.name && expr.id.name !== "main"
   );
   snippetMethods = snippetMethods.filter(
-    (f) => !f.init || f.init.type === "ArrowFunctionExpression"
+    (expr) => !expr.init || expr.init.type === "ArrowFunctionExpression"
   );
 
   snippetMethods.forEach(
-    (m) =>
-      (m.drift = {
-        methodName: m.id.name,
-        name: m.id.name,
+    (method) =>
+      (method.drift = {
+        methodName: method.id.name,
+        name: method.id.name,
         sourcePath,
-        startLine: m.loc.start.line,
-        endLine: m.loc.end.line,
+        startLine: method.loc.start.line,
+        endLine: method.loc.end.line,
         parser: "directInvocation",
       })
   );

@@ -16,9 +16,9 @@
 
 module.exports = (testTokens) => {
   let filename;
-  testTokens.body.forEach((x) => {
-    if (x.declarations) {
-      let filenameCandidates = x.declarations[0].init;
+  testTokens.body.forEach((expr) => {
+    if (expr.declarations) {
+      let filenameCandidates = expr.declarations[0].init;
       if (!filenameCandidates) {
         return;
       }
@@ -35,7 +35,7 @@ module.exports = (testTokens) => {
         filename =
           filenameCandidates
             .split(/\/|\s/)
-            .filter((x) => x.endsWith(".js"))[0] || filename;
+            .filter((path) => path.endsWith(".js"))[0] || filename;
       }
     }
   });

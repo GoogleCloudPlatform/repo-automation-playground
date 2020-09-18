@@ -16,18 +16,18 @@
 
 exports.parse = (sourceTokens, sourcePath) => {
   let mainMethods = sourceTokens.body.map(
-    (x) => (x.declarations && x.declarations[0]) || x
+    (expr) => (expr.declarations && expr.declarations[0]) || expr
   );
   mainMethods = mainMethods.filter(
-    (f) => f.id && f.id.name && f.id.name === "main"
+    (expr) => expr.id && expr.id.name && expr.id.name === "main"
   );
 
   mainMethods = mainMethods
-    .map((f) => {
-      if (f.id.name === "main") {
+    .map((expr) => {
+      if (expr.id.name === "main") {
         // HACK: some samples (e.g. nodejs-vision) wrap sample in a "main" method
         const subexpressions = (f.init || f).body.body.filter(
-          (x) => x.id && x.id.name
+          (subExpr) => subExpr.id && subExpr.id.name
         );
         if (subexpressions.length === 1) {
           return subexpressions[0];
@@ -37,18 +37,18 @@ exports.parse = (sourceTokens, sourcePath) => {
           return null;
         }
       }
-      return f;
+      return expr;
     })
-    .filter((f) => f);
+    .filter((expr) => expr);
 
   mainMethods.forEach(
-    (m) =>
-      (m.drift = {
-        methodName: m.id.name,
-        name: m.id.name,
+    (method) =>
+      (method.drift = {
+        methodName: method.id.name,
+        name: method.id.name,
         sourcePath,
-        startLine: m.loc.start.line,
-        endLine: m.loc.end.line,
+        startLine: method.loc.start.line,
+        endLine: method.loc.end.line,
         parser: "wrappedMain",
       })
   );

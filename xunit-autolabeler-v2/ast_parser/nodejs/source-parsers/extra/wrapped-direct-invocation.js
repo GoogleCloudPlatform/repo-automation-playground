@@ -18,14 +18,14 @@ const directInvocation = require("../core/direct-invocation.js");
 
 exports.parse = (sourceTokens, sourcePath) => {
   const [mainMethodContents] = sourceTokens.body.filter(
-    (x) => x.type === "FunctionDeclaration"
+    (expr) => expr.type === "FunctionDeclaration"
   );
   if (mainMethodContents) {
     const methods = directInvocation.parse(mainMethodContents.body, sourcePath);
 
     // Override direct invocation parser's parser value
-    methods.forEach((m) => {
-      m.drift.parser = "wrappedDirectInvocation";
+    methods.forEach((method) => {
+      method.drift.parser = "wrappedDirectInvocation";
     });
 
     return methods;
