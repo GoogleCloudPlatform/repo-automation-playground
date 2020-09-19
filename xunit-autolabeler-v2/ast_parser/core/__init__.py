@@ -11,24 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
-from typing import List, NamedTuple, Optional
-
-
-class DriftData(NamedTuple):
-    # Properties set by individual source parsers
-    name: str
-    class_name: str
-    parser: str
-    start_line: int
-    method_name: Optional[str] = None
-    url: Optional[str] = None
-    flask_http_methods: List[str] = []
-    webapp2_http_method: Optional[str] = None
-
-    # Properties set by source_parser.py
-    source_path: Optional[str] = None
-    end_line: Optional[int] = None
-    children: List[str] = []
-    test_methods: List[str] = []

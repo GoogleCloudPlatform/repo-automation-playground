@@ -13,22 +13,17 @@
 # limitations under the License.
 
 
-from typing import List, NamedTuple, Optional
+from typing import NamedTuple, Optional
 
 
-class DriftData(NamedTuple):
-    # Properties set by individual source parsers
-    name: str
-    class_name: str
-    parser: str
-    start_line: int
+class DriftTest(NamedTuple):
     method_name: Optional[str] = None
+    class_name: Optional[str] = None
     url: Optional[str] = None
-    flask_http_methods: List[str] = []
-    webapp2_http_method: Optional[str] = None
+    http_method: Optional[str] = None
 
-    # Properties set by source_parser.py
-    source_path: Optional[str] = None
-    end_line: Optional[int] = None
-    children: List[str] = []
-    test_methods: List[str] = []
+    def get_key_tuple(self):
+        return (
+            self.http_method or self.class_name,
+            self.url or self.method_name
+        )
