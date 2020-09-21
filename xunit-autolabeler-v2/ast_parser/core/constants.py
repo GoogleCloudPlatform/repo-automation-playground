@@ -13,30 +13,30 @@
 # limitations under the License.
 
 
-IGNORED_METHOD_NAMES = [
+IGNORED_METHOD_NAMES = (
     'run_command',
     'parse_command_line_args',
     'main'
-]
+)
 
-HTTP_CLASS_NAMES = [
+HTTP_CLASS_NAMES = (
     'app',
     'client'
-]
+)
 
-HTTP_METHOD_NAMES = [
+HTTP_METHOD_NAMES = (
     'get',
     'post',
     'put',
     'patch',
     'delete',
     'options'
-]
+)
 
 TAG_LINE_RANGE = 8
 
 # Per https://flask.palletsprojects.com/en/1.1.x/quickstart/#http-methods
-FLASK_DEFAULT_METHODS = ['get']
+FLASK_DEFAULT_METHODS = ('get',)
 
 TEST_FILE_MARKER = 'test.py'
 
@@ -52,4 +52,4 @@ REQUIRED_KEY_VALUES = {
 }
 
 # region tags that don't uniquely identify a sample
-IGNORED_REGION_TAGS = ['app', 'all']
+IGNORED_REGION_TAGS = ('app', 'all')
