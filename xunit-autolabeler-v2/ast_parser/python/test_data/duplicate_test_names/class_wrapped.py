@@ -13,7 +13,5 @@
 # limitations under the License.
 
 
-# [START class_wrapped]
 def method():
     return 'main method'
-# [END class_wrapped]
