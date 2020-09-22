@@ -17,6 +17,14 @@ from typing import NamedTuple, Optional
 
 
 class DriftTest(NamedTuple):
+    """Snippet test key struct
+
+    Struct for storing properties that uniquely
+    identify a snippet test within a specific file.
+    Typically, these take one of two formats:
+     - (class_name, method_name)
+     - (http_method, url)
+    """
     method_name: Optional[str] = None
     class_name: Optional[str] = None
     url: Optional[str] = None

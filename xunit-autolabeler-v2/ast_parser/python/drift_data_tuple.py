@@ -17,6 +17,15 @@ from typing import List, NamedTuple, Optional
 
 
 class DriftData(NamedTuple):
+    """Struct for storing snippet metadata
+
+    This object stores snippet data extracted from
+    snippet source files. Once all Python files have
+    been parsed, this object can be serialized into
+    JSON for use by the second-stage "language agnostic"
+    parser.
+    """
+
     # Properties set by individual source parsers
     name: str
     class_name: str
