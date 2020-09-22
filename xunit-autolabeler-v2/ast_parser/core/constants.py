@@ -13,6 +13,9 @@
 # limitations under the License.
 
 
+from frozendict import frozendict
+
+
 IGNORED_METHOD_NAMES = (
     'run_command',
     'parse_command_line_args',
@@ -26,10 +29,13 @@ HTTP_CLASS_NAMES = (
 
 HTTP_METHOD_NAMES = (
     'get',
+    'head',
     'post',
     'put',
     'patch',
     'delete',
+    'connect',
+    'trace',
     'options'
 )
 
@@ -40,16 +46,16 @@ FLASK_DEFAULT_METHODS = ('get',)
 
 TEST_FILE_MARKER = 'test.py'
 
-RESERVED_YAML_KEYS = set(['tested', 'overwrite', 'ignore', 'additions'])
+RESERVED_YAML_KEYS = frozenset(['tested', 'overwrite', 'ignore', 'additions'])
 
-SOURCE_REQUIRED_FOR_KEYS = set(['overwrite'])
-SOURCE_BANNED_FOR_KEYS_WITHOUT_OVERWRITE = set(['tested'])
+SOURCE_REQUIRED_FOR_KEYS = frozenset(['overwrite'])
+SOURCE_BANNED_FOR_KEYS_WITHOUT_OVERWRITE = frozenset(['tested'])
 
-REQUIRED_KEY_VALUES = {
+REQUIRED_KEY_VALUES = frozendict({
     'tested': False,
     'overwrite': True,
     'ignore': True
-}
+})
 
 # region tags that don't uniquely identify a sample
 IGNORED_REGION_TAGS = ('app', 'all')
