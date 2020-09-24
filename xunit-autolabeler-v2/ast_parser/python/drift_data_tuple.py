@@ -17,6 +17,16 @@ from typing import List, NamedTuple, Optional
 
 
 class DriftData(NamedTuple):
+    """Struct for storing snippet metadata
+
+    This object stores snippet data extracted from
+    snippet source files. Once all Python files have
+    been parsed, this object can be serialized into
+    JSON for use by the second-stage "language agnostic"
+    parser.
+    """
+
+    # Properties set by individual source parsers
     name: str
     class_name: str
     parser: str
@@ -25,3 +35,9 @@ class DriftData(NamedTuple):
     url: Optional[str] = None
     flask_http_methods: List[str] = []
     webapp2_http_method: Optional[str] = None
+
+    # Properties set by source_parser.py
+    source_path: Optional[str] = None
+    end_line: Optional[int] = None
+    children: List[str] = []
+    test_methods: List[str] = []
