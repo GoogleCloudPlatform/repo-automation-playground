@@ -15,12 +15,28 @@
 
 import ast
 import os
+import sys
 
 from .source_parsers import direct_invocation, webapp2_router, flask_router
 from typing import Any, List
 
 
 def _get_method_children(expr: Any) -> List[Any]:
+    """Recursively get potential "child" snippets of a snippet method
+
+    This method recursively retrieves a list of expressions within
+    a method that may represent calls to other snippets. This is
+    necessary because tests that cover the parent snippet should
+    also be considered to (recursively) cover any snippets called
+    by the parent snippet itself.
+
+    Args:
+        expr (ast.AST): a Python expression object
+
+    Returns:
+        List[ast.AST]: a list of potential child snippet methods
+
+    """
     results = []
 
     if hasattr(expr, 'id'):
@@ -49,31 +65,42 @@ def _get_method_children(expr: Any) -> List[Any]:
 
 
 def _get_ending_line(expr: Any) -> int:
-    m_end_stmt = expr
+    """Get the ending line number of a Python expression
+
+    This method gets the final line number of a
+    (possibly-multiline) Python expression.
+
+    Args:
+        expr (ast.AST): a Python expression object
+
+    Returns:
+        int: the line number on which the given expression ends
+    """
+    final_stmt = expr
     highest_line_no = -1
     not_at_end = True
     while not_at_end:
-        if hasattr(m_end_stmt, 'lineno'):
-            highest_line_no = m_end_stmt.lineno
+        if hasattr(final_stmt, 'lineno'):
+            highest_line_no = final_stmt.lineno
 
-        if hasattr(m_end_stmt, 'body'):
-            m_end_stmt = m_end_stmt.body[-1]
-        elif hasattr(m_end_stmt, 'exc'):
-            m_end_stmt = m_end_stmt.exc
-        elif hasattr(m_end_stmt, 'args'):
-            m_end_stmt = m_end_stmt.args[-1]
-        elif hasattr(m_end_stmt, 'elts'):
-            m_end_stmt = m_end_stmt.elts[-1]
-        elif hasattr(m_end_stmt, 'generators'):
-            m_end_stmt = m_end_stmt.generators[-1]
-        elif hasattr(m_end_stmt, 'iter'):
-            m_end_stmt = m_end_stmt.iter
-        elif hasattr(m_end_stmt, 'values'):
-            m_end_stmt = m_end_stmt.values[-1]
-        elif hasattr(m_end_stmt, 'value'):
+        if hasattr(final_stmt, 'body'):
+            final_stmt = final_stmt.body[-1]
+        elif hasattr(final_stmt, 'exc'):
+            final_stmt = final_stmt.exc
+        elif hasattr(final_stmt, 'args'):
+            final_stmt = final_stmt.args[-1]
+        elif hasattr(final_stmt, 'elts'):
+            final_stmt = final_stmt.elts[-1]
+        elif hasattr(final_stmt, 'generators'):
+            final_stmt = final_stmt.generators[-1]
+        elif hasattr(final_stmt, 'iter'):
+            final_stmt = final_stmt.iter
+        elif hasattr(final_stmt, 'values'):
+            final_stmt = final_stmt.values[-1]
+        elif hasattr(final_stmt, 'value'):
             # some (but not all) value attributes have
             # child elements - we handle both kinds here
-            m_end_stmt = m_end_stmt.value
+            final_stmt = final_stmt.value
         else:
             not_at_end = False
 
@@ -81,26 +108,48 @@ def _get_ending_line(expr: Any) -> int:
 
 
 def get_top_level_methods(source_path: str) -> List[Any]:
-    with open(source_path, 'r') as f:
-        content = "".join(f.readlines())
-        nodes = ast.iter_child_nodes(ast.parse(content))
-        nodes = [x for x in nodes]
+    """Gets the top-level methods within a file
 
-        class_name = os.path.splitext(os.path.basename(source_path))[0]
+    Args:
+        source_path: path to the file to process
 
-        methods = []
+    Returns:
+        List[ast.AST]: a list of the top-level
+                       methods within the provided file
+    """
+    try:
+        with open(source_path, 'r') as f:
+            content = ''.join(f.readlines())
+            nodes = list(ast.iter_child_nodes(ast.parse(content)))
 
-        methods += webapp2_router.parse(nodes)
-        methods += flask_router.parse(nodes, class_name)
+            # Webapp2 is the only parser that detects class names explicitly
+            # Other parsers use the module name (filename minus ".py" suffix)
+            module_name = os.path.splitext(
+                os.path.basename(source_path))[0]
 
-        # run direct_invocation parser after flask_router to avoid duplicates
-        methods += direct_invocation.parse(nodes, class_name)
+            methods = []
 
-        for method in methods:
-            method.drift = method.drift._replace(
-                source_path=os.path.abspath(source_path),
-                children=_get_method_children(method),
-                end_line=_get_ending_line(method)
-            )
+            methods += webapp2_router.parse(nodes)
+            methods += flask_router.parse(nodes, module_name)
 
-        return methods
+            # run direct_invocation parser after flask_router to avoid dupes
+            methods += direct_invocation.parse(nodes, module_name)
+
+            for method in methods:
+                method.drift = method.drift._replace(
+                    source_path=os.path.abspath(source_path),
+                    children=_get_method_children(method),
+                    end_line=_get_ending_line(method)
+                )
+
+            return methods
+    except IOError as err:
+        # Fail gracefully if a file can't be read
+        # (This shouldn't happen, but if it doess
+        #  we don't want to "break the build".)
+        sys.stderr.write(
+            f'WARNING: could not read file: {source_path}\n')
+        sys.stderr.write(
+            f'\t{str(err)}\n')
+
+        return []
