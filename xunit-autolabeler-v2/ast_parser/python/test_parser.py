@@ -49,7 +49,7 @@ def _get_test_nodes(parsed_nodes: List[Any]) -> List[Any]:
     return test_nodes
 
 
-def get_test_methods(test_path: str):
+def get_test_methods(test_path: str) -> List[Any]:
     """Gets the top-level methods within a test file
 
     Args:
