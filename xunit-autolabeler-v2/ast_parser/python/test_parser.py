@@ -34,17 +34,16 @@ def _get_test_nodes(parsed_nodes: List[Any]) -> List[Any]:
         List[ast.AST]: a list of possible test nodes
     """
 
-    class_nodes = [node for node in parsed_nodes
-                   if 'ClassDef' in str(type(node))]
-    test_nodes = [node for node in parsed_nodes
-                  if node not in class_nodes]
+    possible_test_nodes = parsed_nodes
+    for node in possible_test_nodes:
+        if 'ClassDef' in str(type(node)):
+            # Both class nodes themselves and their bodies can represent tests
+            possible_test_nodes += node.body
 
-    for node in class_nodes:
-        test_nodes += node.body
-
-    test_nodes = [node for node in test_nodes
-                  if hasattr(node, 'name') and
-                  node.name.startswith('test_')]
+    test_nodes = []
+    for node in possible_test_nodes:
+        if hasattr(node, 'name') and node.name.startswith('test_'):
+            test_nodes.append(node)
 
     return test_nodes
 
@@ -111,6 +110,13 @@ def get_test_key_to_snippet_map(
     test_to_method_key_map = {}
 
     def __recursor__(expr):
+        """Recursively find test keys within an expression.
+
+        Args:
+            expr (ast.AST): the AST node to search for test keys within
+
+        Returns: a list of test keys within the given expression
+        """
         type_str = str(type(expr))
         is_func = hasattr(expr, 'func')
 
@@ -215,8 +221,8 @@ def store_tests_on_methods(
                     # must have a common source file
                     if len(source_paths) != 1:
                         raise ValueError(
-                            "Invalid test-method map: source filepaths "
-                            "within a map entry must be identical!"
+                            'Invalid test-method map: source filepaths '
+                            'within a map entry must be identical!'
                         )
 
                     if source_root in list(source_paths)[0]:
