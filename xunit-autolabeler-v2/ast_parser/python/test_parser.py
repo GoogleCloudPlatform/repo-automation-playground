@@ -34,18 +34,15 @@ def _get_test_nodes(parsed_nodes: List[Any]) -> List[Any]:
         List[ast.AST]: a list of possible test nodes
     """
 
-    possible_test_nodes = parsed_nodes
-    for node in possible_test_nodes:
+    possible_test_nodes = []
+    for node in parsed_nodes:
+        possible_test_nodes.append(node)
         if 'ClassDef' in str(type(node)):
-            # Both class nodes themselves and their bodies can represent tests
+            # Concatenate node.body (which is an array)
             possible_test_nodes += node.body
 
-    test_nodes = []
-    for node in possible_test_nodes:
-        if hasattr(node, 'name') and node.name.startswith('test_'):
-            test_nodes.append(node)
-
-    return test_nodes
+    return [node for node in possible_test_nodes
+            if hasattr(node, 'name') and node.name.startswith('test_')]
 
 
 def get_test_methods(test_path: str) -> List[Any]:
