@@ -109,7 +109,7 @@ def get_test_key_to_snippet_map(
     """
     test_to_method_key_map = {}
 
-    def __recursor__(expr):
+    def __recursor__(expr: Any) -> List[drift_test.DriftTest]:
         """Recursively find test keys within an expression.
 
         Args:
