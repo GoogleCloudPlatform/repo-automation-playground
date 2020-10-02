@@ -58,8 +58,7 @@ def get_test_methods(test_path: str) -> List[Any]:
     try:
         with open(test_path, 'r') as file:
             content = "".join(file.readlines())
-            parsed_nodes = ast.iter_child_nodes(ast.parse(content))
-            parsed_nodes = [node for node in parsed_nodes]
+            parsed_nodes = list(ast.iter_child_nodes(ast.parse(content)))
 
             test_nodes = _get_test_nodes(parsed_nodes)
 
