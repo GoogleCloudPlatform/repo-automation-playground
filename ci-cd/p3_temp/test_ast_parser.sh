@@ -23,5 +23,6 @@ pip install --user -r requirements.txt
 pip install --user -r requirements-dev.txt
 
 pytest . \
+    --ignore core/test_data \
     --ignore python/test_data \
     --ignore python/source_parsers/test_data
