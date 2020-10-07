@@ -30,7 +30,7 @@ class PolyglotParserTests(unittest.TestCase):
             return json.loads('\n'.join(f.readlines()))
 
     def test_ignores_ignored_method_names(self):
-        repo_json = path.join(TEST_DATA_PATH, 'edge_cases/repo.json')
+        repo_json = path.join(TEST_DATA_PATH, 'edge_cases/polyglot_snippet_data.json')
         source_path = path.join(TEST_DATA_PATH, 'edge_cases/edge_cases.py')
 
         source_methods = self.__parse_json(repo_json)
@@ -46,7 +46,7 @@ class PolyglotParserTests(unittest.TestCase):
         self.assertEqual(method['region_tags'], ['not_main'])
 
     def test_region_tags_nested(self):
-        repo_json = path.join(TEST_DATA_PATH, 'nested_tags/repo.json')
+        repo_json = path.join(TEST_DATA_PATH, 'nested_tags/polyglot_snippet_data.json')
         source_path = path.join(TEST_DATA_PATH, 'nested_tags/nested_tags.py')
 
         source_methods = self.__parse_json(repo_json)
@@ -65,7 +65,7 @@ class PolyglotParserTests(unittest.TestCase):
         self.assertEqual(method_2['region_tags'], ['root_tag'])
 
     def test_handle_multi_block_region_tags(self):
-        repo_json = path.join(TEST_DATA_PATH, 'nested_tags/repo.json')
+        repo_json = path.join(TEST_DATA_PATH, 'nested_tags/polyglot_snippet_data.json')
         source_path = path.join(TEST_DATA_PATH, 'nested_tags/nested_tags.py')
 
         source_methods = self.__parse_json(repo_json)
@@ -83,7 +83,7 @@ class PolyglotParserTests(unittest.TestCase):
         self.assertEqual(method_2['region_tags'], ['root_tag'])
 
     def test_flask_router_parser(self):
-        repo_json = path.join(TEST_DATA_PATH, 'flask/repo.json')
+        repo_json = path.join(TEST_DATA_PATH, 'flask/polyglot_snippet_data.json')
         source_path = path.join(TEST_DATA_PATH, 'flask/flask_main.py')
 
         source_methods = self.__parse_json(repo_json)
@@ -99,7 +99,7 @@ class PolyglotParserTests(unittest.TestCase):
         self.assertEqual(method['region_tags'], ['sample_route'])
 
     def test_direct_invocation_parser(self):
-        repo_json = path.join(TEST_DATA_PATH, 'http/repo.json')
+        repo_json = path.join(TEST_DATA_PATH, 'http/polyglot_snippet_data.json')
         source_path = path.join(TEST_DATA_PATH, 'http/http_main.py')
 
         source_methods = self.__parse_json(repo_json)
@@ -116,7 +116,7 @@ class PolyglotParserTests(unittest.TestCase):
         assert 'functions_helloworld_get' in method['region_tags']
 
     def test_webapp2_parser(self):
-        repo_json = path.join(TEST_DATA_PATH, 'webapp2/repo.json')
+        repo_json = path.join(TEST_DATA_PATH, 'webapp2/polyglot_snippet_data.json')
         source_path = path.join(TEST_DATA_PATH, 'webapp2/webapp2_main.py')
 
         source_methods = self.__parse_json(repo_json)
