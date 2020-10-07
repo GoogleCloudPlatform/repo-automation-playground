@@ -16,6 +16,25 @@
 # We'll be at the git root, so move to the target directory.
 cd xunit-autolabeler-v2/ast_parser
 
+# Generate required polyglot_snippet_data.py files
+python python_bootstrap.py core/test_data/bad_repo_json
+python python_bootstrap.py core/test_data/cli/additions
+python python_bootstrap.py core/test_data/cli/bad_region_tag
+python python_bootstrap.py core/test_data/cli/dotfile_test
+python python_bootstrap.py core/test_data/parser
+python python_bootstrap.py core/test_data/parser/edge_cases
+python python_bootstrap.py core/test_data/parser/edge_cases
+python python_bootstrap.py core/test_data/parser/flask
+python python_bootstrap.py core/test_data/parser/http
+python python_bootstrap.py core/test_data/parser/nested_tags
+python python_bootstrap.py core/test_data/parser/webapp2
+python python_bootstrap.py core/test_data/yaml
+python python_bootstrap.py core/test_data/yaml/explicit_tests
+python python_bootstrap.py core/test_data/yaml/invalid
+python python_bootstrap.py core/test_data/yaml/overwrite_tests
+python python_bootstrap.py core/test_data/yaml/smoke_tests
+python python_bootstrap.py python/source_parsers
+
 # add user's pip binary path to PATH
 export PATH="${HOME}/.local/bin:${PATH}"
 
