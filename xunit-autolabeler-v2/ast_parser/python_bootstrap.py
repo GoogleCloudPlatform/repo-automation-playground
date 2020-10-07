@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import json
 import os
 import sys
 
@@ -22,11 +23,11 @@ if len(sys.argv) != 2:
     raise ValueError('Please specify exactly one [root] directory.')
 
 root_dir = sys.argv[1]
-output_file = os.path.join(root_dir, 'repo.json')
+output_path = os.path.join(root_dir, 'repo.json')
 
-json_out = invoker.get_json_for_dir(root_dir)
-with open(output_file, 'w') as f:
-    f.write(json_out + '\n')
+json_array = invoker.get_json_for_dir(root_dir)
+with open(output_path, 'w') as file:
+    json.dump(json_array, file)
 
-print(f'JSON written to: {output_file}')
+print(f'JSON written to: {output_path}')
 print('Do not move this file!')

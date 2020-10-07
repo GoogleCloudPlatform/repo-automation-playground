@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import json
 import os
+from typing import Any, List
 
 from ast_parser.lib import file_utils
+
 from . import constants, source_parser, test_parser
-from typing import Any, List
 
 
 def _parse_source(source_path: str) -> List[Any]:
@@ -54,4 +53,4 @@ def get_json_for_dir(root_dir: str) -> str:
             method.drift.source_path, root_dir)
         method.drift._replace(source_path=new_source_path)
 
-    return json.dumps([method.drift._asdict() for method in source_methods])
+    return [method.drift._asdict() for method in source_methods]

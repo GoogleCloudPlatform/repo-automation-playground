@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import json
 import os
-
 
 from . import invoker
 
@@ -45,9 +42,7 @@ def test_recognizes_test_files():
 
 
 def test_get_json_for_dir():
-    repo_json = invoker.get_json_for_dir(TEST_DATA_PATH)
-
-    repo_obj = json.loads(repo_json)
+    repo_obj = invoker.get_json_for_dir(TEST_DATA_PATH)
     assert len(repo_obj) == 1
 
     first_repo_obj = repo_obj[0]
