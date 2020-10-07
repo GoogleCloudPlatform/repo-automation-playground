@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import os
-from typing import Any, List
+from typing import Any, Dict, List
 
 from ast_parser.lib import file_utils
 
@@ -32,7 +32,7 @@ def _parse_test(test_path: str, source_methods: List[Any]) -> None:
     test_parser.store_tests_on_methods(source_methods, test_method_map)
 
 
-def get_json_for_dir(root_dir: str) -> str:
+def get_json_for_dir(root_dir: str) -> List[Dict]:
     python_files = file_utils.get_python_files(root_dir)
 
     source_methods = []
