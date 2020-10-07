@@ -23,7 +23,7 @@ if len(sys.argv) != 2:
     raise ValueError('Please specify exactly one [root] directory.')
 
 root_dir = sys.argv[1]
-output_path = os.path.join(root_dir, 'repo.json')
+output_path = os.path.join(root_dir, 'polyglot_snippet_data.json')
 
 json_array = invoker.get_json_for_dir(root_dir)
 with open(output_path, 'w') as file:
