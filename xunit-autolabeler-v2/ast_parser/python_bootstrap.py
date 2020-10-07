@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC. All Rights Reserved.
+# Copyright 2020 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,21 @@
 # limitations under the License.
 
 
-# Add the parent 'ast_parser' module to PYTHONPATH
-# for consistency between Python and pytest
-#  Pytest root dir: '$REPO_ROOT/'
-#  Python root dir: '$REPO_ROOT/ast_parser'
+import json
+import os
 import sys
-sys.path.append('..')
+
+from python import invoker
+
+if len(sys.argv) != 2:
+    raise ValueError('Please specify exactly one [root] directory.')
+
+root_dir = sys.argv[1]
+output_path = os.path.join(root_dir, 'polyglot_snippet_data.json')
+
+json_array = invoker.get_json_for_dir(root_dir)
+with open(output_path, 'w') as file:
+    json.dump(json_array, file)
+
+print(f'JSON written to: {output_path}')
+print('Do not move this file!')
