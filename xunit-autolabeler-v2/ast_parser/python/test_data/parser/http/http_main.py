@@ -14,9 +14,10 @@
 
 import sys
 
+from flask import escape
+
 # [START functions_helloworld_http]
 # [START functions_http_content]
-from flask import escape
 
 # [END functions_helloworld_http]
 # [END functions_http_content]
@@ -109,7 +110,7 @@ def hello_gcs(event, context):
          context (google.cloud.functions.Context): The Cloud Functions
          event metadata.
     """
-    print("File: {}.".format(event['objectId']))
+    print('File: {}.'.format(event['objectId']))
 # [END functions_helloworld_storage]
 
 
@@ -139,7 +140,7 @@ def hello_content(request):
     elif content_type == 'application/x-www-form-urlencoded':
         name = request.form.get('name')
     else:
-        raise ValueError("Unknown content type: {}".format(content_type))
+        raise ValueError('Unknown content type: {}'.format(content_type))
     return 'Hello {}!'.format(escape(name))
 # [END functions_http_content]
 

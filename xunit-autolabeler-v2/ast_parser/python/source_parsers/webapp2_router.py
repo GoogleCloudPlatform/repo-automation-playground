@@ -15,7 +15,6 @@
 
 from typing import Any, Dict, List
 
-
 from ast_parser.python import drift_data_tuple
 
 

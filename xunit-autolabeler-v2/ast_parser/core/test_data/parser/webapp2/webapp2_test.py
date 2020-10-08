@@ -17,10 +17,12 @@
 ###########################################################################
 
 import mock
+
 import pytest
-import webtest
 
 import webapp2_main
+
+import webtest
 
 
 @pytest.fixture

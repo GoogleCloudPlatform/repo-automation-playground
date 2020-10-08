@@ -15,9 +15,8 @@
 
 from typing import Any, List
 
-
-from ast_parser.python import drift_data_tuple
 from ast_parser.lib import constants
+from ast_parser.python import drift_data_tuple
 
 
 def _is_unique_method(node: Any) -> bool:

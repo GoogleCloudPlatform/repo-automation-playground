@@ -24,17 +24,17 @@ import webapp2
 # However, this testcase needs *some* super-class
 class RouteWithoutProperSubclass(object):
     def get(self):
-        self.response.out.write("")
+        self.response.out.write('')
 
 
 class RouteWithoutWSGIApplicationReference(webapp2.RequestHandler):
     def get(self):
-        self.response.out.write("")
+        self.response.out.write('')
 
 
 class ValidRoute(webapp2.RequestHandler):
     def get(self):
-        self.response.out.write("")
+        self.response.out.write('')
 
 
 app = webapp2.WSGIApplication([('/', ValidRoute)],
