@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
+import pytest
 
 from . import source_parser
-
-import os
-import pytest
 
 
 ##############################################################
@@ -35,7 +35,7 @@ def _methods():
 
 
 @pytest.mark.parametrize(
-    "method_idx,start,end",
+    'method_idx,start,end',
     [
         (0, 16, 20),
         (1, 23, 31),
@@ -48,15 +48,15 @@ def _methods():
         (8, 92, 97)
     ],
     ids=[
-        "one_level_function",
-        "multiline_args_tuple",
-        "nested_if_statement",
-        "nested_for_statement",
-        "nested_with_statement",
-        "returning_multiline_tuple",
-        "returning_multiline_dict",
-        "returning_multiline_array",
-        "returning_multiline_list_comp",
+        'one_level_function',
+        'multiline_args_tuple',
+        'nested_if_statement',
+        'nested_for_statement',
+        'nested_with_statement',
+        'returning_multiline_tuple',
+        'returning_multiline_dict',
+        'returning_multiline_array',
+        'returning_multiline_list_comp',
     ]
 )
 def test_ending_line(method_idx, start, end, _methods):

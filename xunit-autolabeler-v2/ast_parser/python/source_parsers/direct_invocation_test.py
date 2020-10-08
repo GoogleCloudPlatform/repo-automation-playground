@@ -15,10 +15,7 @@
 
 import ast
 import os
-
-
 from unittest.mock import MagicMock
-
 
 from . import direct_invocation
 

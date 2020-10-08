@@ -14,9 +14,9 @@
 
 
 import os
-import pytest
 import unittest
 
+import pytest
 
 from . import source_parser, test_parser
 

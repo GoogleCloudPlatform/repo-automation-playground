@@ -17,10 +17,9 @@ import os
 import unittest
 from unittest.mock import MagicMock
 
+import pytest
 
 from . import source_parser
-
-import pytest
 
 
 class GetMethodChildrenTest(unittest.TestCase):
@@ -49,12 +48,12 @@ class GetMethodChildrenTest(unittest.TestCase):
 
     @pytest.fixture(autouse=True)
     def _dummy_methods(self):
-        self.submethod = self._clear_fake_method("submethod")
-        self.submethod_1 = self._clear_fake_method("submethod_1")
-        self.submethod_2 = self._clear_fake_method("submethod_2")
+        self.submethod = self._clear_fake_method('submethod')
+        self.submethod_1 = self._clear_fake_method('submethod_1')
+        self.submethod_2 = self._clear_fake_method('submethod_2')
 
     def test_handles_id(self):
-        fake_method = self._clear_fake_method("abcd")
+        fake_method = self._clear_fake_method('abcd')
 
         results = source_parser._get_method_children(fake_method)
 
@@ -96,7 +95,7 @@ class GetMethodChildrenTest(unittest.TestCase):
             'submethod', 'submethod_1', 'submethod_2']
 
     def test_body_must_be_list(self):
-        fake_method = self._clear_fake_method(body="not_a_list")
+        fake_method = self._clear_fake_method(body='not_a_list')
 
         results = source_parser._get_method_children(fake_method)
 

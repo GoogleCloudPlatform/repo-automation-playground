@@ -16,9 +16,9 @@
 import ast
 import os
 import sys
-
-from .source_parsers import direct_invocation, webapp2_router, flask_router
 from typing import Any, List
+
+from .source_parsers import direct_invocation, flask_router, webapp2_router
 
 
 def _get_method_children(expr: Any) -> List[Any]:

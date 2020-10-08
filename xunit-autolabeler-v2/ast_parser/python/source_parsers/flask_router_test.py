@@ -15,9 +15,9 @@
 
 import ast
 import os
-import pytest
 import unittest
 
+import pytest
 
 from . import flask_router
 

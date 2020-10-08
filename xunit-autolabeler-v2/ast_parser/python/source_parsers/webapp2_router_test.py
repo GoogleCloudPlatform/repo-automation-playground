@@ -15,11 +15,11 @@
 
 import ast
 import os
-import pytest
 import unittest
 
+import pytest
 
-from . import webapp2_router, direct_invocation
+from . import direct_invocation, webapp2_router
 
 
 class WebApp2RouterTests(unittest.TestCase):
