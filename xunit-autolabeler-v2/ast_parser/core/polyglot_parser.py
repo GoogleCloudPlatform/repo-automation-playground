@@ -135,11 +135,14 @@ def get_region_tag_regions(
                 raise ValueError(
                     f'Mismatched region tag [{tag}] in {source_path}')
 
-            for i in range(len(matching_starts)):
-                start_region = matching_starts[i]
-                regions_and_tags.append(
-                    (start_region[1], start_region[0], matching_ends[i][0])
-                )
+            # Create regions_and_tags list
+            matching_tags = [region[1] for region in matching_starts]
+            matching_start_linenos = [region[0] for region in matching_starts]
+            matching_end_linenos = [region[0] for region in matching_ends]
+            
+            matching_regions_and_tags = list(zip(
+                matching_tags, matching_start_linenos, matching_end_linenos))
+            regions_and_tags += matching_regions_and_tags
 
         return (regions_and_tags, ignored_tag_names)
 
