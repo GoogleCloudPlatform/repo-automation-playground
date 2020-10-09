@@ -126,10 +126,10 @@ def get_region_tag_regions(
 
         regions_and_tags = []
         for tag in unique_tag_names:
-            matching_starts = [region for region in start_regions
-                               if region[1] == tag]
-            matching_ends = [region for region in end_regions
-                             if region[1] == tag]
+            matching_starts = [(line_num, line_tag) for line_num, line_tag
+                               in start_regions if line_tag == tag]
+            matching_ends = [(line_num, line_tag) for line_num, line_tag
+                             in end_regions if line_tag == tag]
 
             if len(matching_starts) != len(matching_ends):
                 raise ValueError(
@@ -139,7 +139,7 @@ def get_region_tag_regions(
             matching_tags = [region[1] for region in matching_starts]
             matching_start_linenos = [region[0] for region in matching_starts]
             matching_end_linenos = [region[0] for region in matching_ends]
-            
+
             matching_regions_and_tags = list(zip(
                 matching_tags, matching_start_linenos, matching_end_linenos))
             regions_and_tags += matching_regions_and_tags
