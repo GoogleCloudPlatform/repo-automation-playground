@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 
 from frozendict import frozendict
 
+
+REGION_TAG_ONLY_REGEX = re.compile(r'(?<=\s)+\w+(?=])')
 
 IGNORED_METHOD_NAMES = (
     'run_command',

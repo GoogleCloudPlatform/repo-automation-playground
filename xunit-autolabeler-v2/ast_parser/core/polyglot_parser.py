@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from typing import Any, Dict, List, Tuple
 
-from .constants import IGNORED_REGION_TAGS, TAG_LINE_RANGE
+from . import constants
 
 
 def add_children_drift_data(source_methods: List) -> None:
@@ -78,7 +77,7 @@ def get_region_tag_regions(
           - ignored_tag_names: a list of region tags (as strings) ignored
                                due to cross-parser constants
     """
-    def _get_region_tag_from_line(line: str) -> Tuple[int, str]:
+    def _get_region_tag_from_line(line: Tuple[int, str]) -> Tuple[int, str]:
         """Extract line numbers and region tags
            from a given (line number, text) 2-tuple.
 
@@ -88,28 +87,34 @@ def get_region_tag_regions(
         Returns:
             a 2-tuple of the form (0-indexed line number, region tag)
         """
-        (line_num, line_text) = line
+        line_num: int = line[0]
+        line_text: str = line[1]
 
-        tag = line_text.split(' ')[-1]
-        tag = tag.split(']')[0]
+        tag = constants.REGION_TAG_ONLY_REGEX.search(line_text).group(0)
         return (line_num + 1, tag)  # +1 = convert to 0-indexed
 
     with open(source_path, 'r') as file:
-        content_lines = [(idx, ln) for idx, ln in enumerate(file.readlines())]
+        content_lines = [(idx, line_text) for idx, line_text in
+                         enumerate(file.readlines())]
 
-        start_tag_lines = [t for t in content_lines if ' [START' in t[1]]
-        end_tag_lines = [t for t in content_lines if ' [END' in t[1]]
+        start_tag_lines = [line_tuple for line_tuple in content_lines
+                           if ' [START' in line_tuple[1]]
+        end_tag_lines = [line_tuple for line_tuple in content_lines
+                         if ' [END' in line_tuple[1]]
 
         # region tags can be repeated, so we can't use them as dict keys
         # for specific region blocks - so we use tuple arrays instead
-        start_regions = [_get_region_tag_from_line(t) for t in start_tag_lines]
-        end_regions = [_get_region_tag_from_line(t) for t in end_tag_lines]
+        start_regions = [_get_region_tag_from_line(line_tuple)
+                         for line_tuple in start_tag_lines]
+        end_regions = [_get_region_tag_from_line(line_tuple)
+                       for line_tuple in end_tag_lines]
 
-        unique_tag_names = list(set([region[1] for region in start_regions]))
+        unique_tag_names = \
+            list(set([region_tag for _, region_tag in start_regions]))
 
         # ignore "useless" region tags
         ignored_tag_names = [tag for tag in unique_tag_names if
-                             tag in IGNORED_REGION_TAGS]
+                             tag in constants.IGNORED_REGION_TAGS]
         unique_tag_names = [tag for tag in unique_tag_names if
                             tag not in ignored_tag_names]
 
@@ -150,7 +155,7 @@ def add_region_tags_to_methods(
         region_tags: a list of regions and tags, encoded as tuples
                      of the form (region tag, start line, end line)
     """
-    def _overlaps(method: Dict, region_and_tag: Tuple[str, int, int]):
+    def _overlaps(method: Dict, region_and_tag: Tuple[str, int, int]) -> bool:
         """Helper function to determine if a method and a given region overlap
 
         Args:
@@ -160,14 +165,17 @@ def add_region_tags_to_methods(
         Returns:
             True if the specified method and region overlap, False otherwise
         """
-        (_, tag_start, tag_end) = region_and_tag
+        _, tag_start, tag_end = region_and_tag
 
         method_start = method['start_line']
         method_end = method['end_line']
 
         # add a fudge factor for region-tag boundary checks
         # (useful for multi-line statements)
-        tolerance = min(method_end - method_start + 1, TAG_LINE_RANGE)
+        tolerance = min(
+            method_end - method_start + 1,
+            constants.TAG_LINE_RANGE
+        )
 
         if tag_start <= method_start + tolerance and \
            method_end <= tag_end + tolerance:
