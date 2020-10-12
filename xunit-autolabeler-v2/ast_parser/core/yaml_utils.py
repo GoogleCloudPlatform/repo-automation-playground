@@ -211,8 +211,8 @@ def get_untested_region_tags(root_dir: str) -> List[str]:
             yaml_contents = '\n'.join(file.readlines())
             parsed_yaml = yaml.safe_load(yaml_contents)
 
-            local_untested_tags = [k for k in parsed_yaml.keys()
-                                   if parsed_yaml[k].get('tested') is False]
+            local_untested_tags = [key for key in parsed_yaml.keys()
+                                   if parsed_yaml[key].get('tested') is False]
             all_untested_tags += local_untested_tags
 
     return list(set(all_untested_tags))
