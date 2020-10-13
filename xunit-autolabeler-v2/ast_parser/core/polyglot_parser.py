@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
 from . import constants
+from . import polyglot_drift_data as pdd
 
 
-def add_children_drift_data(source_methods: List) -> None:
+def add_children_drift_data(
+    source_methods: List[pdd.PolyglotDriftData]
+) -> None:
     """Add DRIFT data of a method's 'children' to its DRIFT data object
 
     This function "merges" a snippet method's children (i.e. other methods
@@ -26,40 +29,46 @@ def add_children_drift_data(source_methods: List) -> None:
     is helpful when determining snippet test coverage.
 
     Args:
-        source_methods (List[ast.AST]): a list of snippet methods; these
-                                        methods are then modified 'in-place'
+        source_methods: a list of snippet methods; these
+                        methods are then modified 'in-place'
 
     Note:
         This method should be called once all other parsing is complete
     """
 
-    def __recursor__(method: Any) -> None:
+    def _recursor(method: pdd.PolyglotDriftData) -> pdd.PolyglotDriftData:
         """Recursively traverses through a snippet method's child methods
 
         Args:
-            method (ast.AST): Python expression to recurse over
+            method: Python expression to recurse over
+
+        Returns:
+            An updated PolyglotDriftData object
         """
-        for child in method['children']:
-            child_methods = [x for x in source_methods if 'name' in x]
-            child_methods = [x for x in child_methods
-                             if child == x['name']]
+        for child in method.children:
+            child_methods = [child_method for child_method in source_methods
+                             if 'name' in child_method]
+            child_methods = [child_method for child_method in child_methods
+                             if child == child_method['name']]
 
             # prevent infinite loops
-            child_methods = [x for x in child_methods
-                             if x['name'] != method['name']]
+            child_methods = [child_method for child_method in child_methods
+                             if child_method['name'] != method['name']]
 
             if child_methods:
                 child_method = child_methods[0]
-                __recursor__(child_method)
+                _recursor(child_method)
 
-                method['region_tags'].extend(child_method['region_tags'])
-                method['test_methods'].extend(child_method['test_methods'])
+                method.region_tags.extend(child_method.region_tags)
+                method.test_methods.extend(child_method.test_methods)
 
-        method['region_tags'] = list(set(method['region_tags']))
-        method['test_methods'] = list(set(method['test_methods']))
+        return method._replace(
+            region_tags=list(set(method.region_tags)),
+            test_methods=list(set(method.test_methods))
+        )
 
-    for method in source_methods:
-        __recursor__(method)
+    for idx, method in enumerate(source_methods):
+        source_methods[idx] = _recursor(method)
 
 
 def get_region_tag_regions(
@@ -147,18 +156,24 @@ def get_region_tag_regions(
         return (regions_and_tags, ignored_tag_names)
 
 
-def add_region_tags_to_methods(
-    methods: List[Any],
+def add_region_tags_to_method(
+    method: pdd.PolyglotDriftData,
     regions_and_tags: List[Tuple[str, int, int]]
-) -> None:
+) -> pdd.PolyglotDriftData:
     """Matches + adds appropriate region tags to a method's DRIFT data
 
     Args:
-        methods (List[ast.AST]): a list of methods to add region tag data to
+        method: a method to add region tag data to
         region_tags: a list of regions and tags, encoded as tuples
                      of the form (region tag, start line, end line)
+
+    Returns:
+        Updated method
     """
-    def _overlaps(method: Dict, region_and_tag: Tuple[str, int, int]) -> bool:
+    def _overlaps(
+        method: pdd.PolyglotDriftData,
+        region_and_tag: Tuple[str, int, int]
+    ) -> bool:
         """Helper function to determine if a method and a given region overlap
 
         Args:
@@ -170,8 +185,8 @@ def add_region_tags_to_methods(
         """
         _, tag_start, tag_end = region_and_tag
 
-        method_start = method['start_line']
-        method_end = method['end_line']
+        method_start = method.start_line
+        method_end = method.end_line
 
         # add a fudge factor for region-tag boundary checks
         # (useful for multi-line statements)
@@ -191,9 +206,11 @@ def add_region_tags_to_methods(
 
         return False
 
-    for method in methods:
-        matching_regions = [region for region in regions_and_tags
-                            if _overlaps(method, region)]
+    matching_regions = [region for region in regions_and_tags
+                        if _overlaps(method, region)]
 
-        method['region_tags'] = list(set([region[0] for region
-                                          in matching_regions]))
+    new_region_tags = list(set([
+        region[0] for region in matching_regions
+    ]))
+
+    return method._replace(region_tags=new_region_tags)
