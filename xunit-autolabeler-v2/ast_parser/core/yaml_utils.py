@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import os
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 from ast_parser.core import constants, polyglot_drift_data
 from ast_parser.lib import file_utils
@@ -36,6 +36,11 @@ def _handle_overwrites(
     Args:
         source_methods_json: A list of language-agnostic snippet methods
         root_dir: A path to the directory source_methods_json was created from
+
+    Modifies:
+        source_methods_json: Clears test_methods attribute on
+                             source_methods_json entries for which an
+                             'overwrite' YAML keyword exists
     """
     yaml_paths = file_utils.get_drift_yaml_files(root_dir)
 
@@ -81,6 +86,11 @@ def _handle_additions_clause(
     Args:
         source_methods_json: A list of language-agnostic snippet methods
         root_dir: A path to the directory source_methods_json was created from
+
+    Modifies:
+        source_methods_json: Adds grouped region tags to source_methods_json
+                             entries with corresponding 'additions' YAML
+                             keyword exists
     """
     yaml_paths = file_utils.get_drift_yaml_files(root_dir)
 
@@ -134,9 +144,18 @@ def _handle_manually_specified_tests(
     Args:
         source_methods_json: A list of language-agnostic snippet methods
         root_dir: A path to the directory source_methods_json was created from
+
+    Modifies:
+        source_methods_json: Adds manually-specified test data to
+                             source_methods_json entries that have a
+                             corresponding manual-test-specifying YAML
+                             entry.
     """
 
-    def _no_banned_subkeys(yaml_entry: Dict, banned_keys: set):
+    def _no_banned_subkeys(
+        yaml_entry: Dict[str, Any],
+        banned_keys: Set[str]
+    ) -> bool:
         """Determine whether a given yaml entry has "banned" keys
 
         (Banned keys cannot exist in a manually-specified test entry.)
@@ -187,6 +206,11 @@ def add_yaml_data_to_source_methods(
     Args:
         source_methods_json: A list of language-agnostic snippet methods
         root_dir: A path to the directory source_methods_json was created from
+
+    Modifies:
+        source_methods_json: Adds data based on the .drift-data.yml
+                             files in the root directory (and,
+                             recursively, its sub-directories).
     """
     _handle_overwrites(source_methods_json, root_dir)
     _handle_manually_specified_tests(source_methods_json, root_dir)
