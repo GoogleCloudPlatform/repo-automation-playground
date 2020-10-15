@@ -202,10 +202,10 @@ def store_tests_on_methods(
         if drift.parser == 'direct_invocation':
             keys = [(drift.class_name, drift.method_name)]
         elif drift.parser == 'webapp2_router':
-            keys = [(drift.webapp2_http_method, drift.url)]
+            keys = [(drift.http_methods[0], drift.url)]
         elif drift.parser == 'flask_router':
             keys = [(http_method, drift.url)
-                    for http_method in drift.flask_http_methods]
+                    for http_method in drift.http_methods]
 
         new_test_methods = list(method.drift.test_methods)  # deep copy
         for key in keys:

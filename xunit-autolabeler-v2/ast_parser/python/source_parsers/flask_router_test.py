@@ -97,7 +97,7 @@ class HttpMethodTests(unittest.TestCase):
 
         # method list is a hard-coded copy of:
         #   ast_parser.python.constants.FLASK_DEFAULT_METHODS
-        assert drift.flask_http_methods == ['get']
+        assert drift.http_methods == ['get']
 
     def test_detects_provided_http_methods(self):
         second_method = self.methods[-1]
@@ -106,7 +106,7 @@ class HttpMethodTests(unittest.TestCase):
 
         drift = second_method.drift
         assert drift.name == 'put_or_patch'
-        assert drift.flask_http_methods == ['put', 'patch']
+        assert drift.http_methods == ['put', 'patch']
 
 
 class MiscTests(unittest.TestCase):
