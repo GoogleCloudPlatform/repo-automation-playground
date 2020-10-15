@@ -22,6 +22,9 @@ class PolyglotDriftData(NamedTuple):
     snippet data extracted from snippet source files
     for use by the second-stage "polyglot" parser.
     """
+    name: str
+    class_name: str
+    method_name: str
     source_path: str
     start_line: int
     end_line: int
@@ -30,22 +33,5 @@ class PolyglotDriftData(NamedTuple):
     test_methods: List[Tuple[str, str]] = []
     children: List[str] = []
 
-    @classmethod
-    def from_json_dict(cls, json_dict):
-        region_tags = json_dict.get('region_tags', [])
-        start_line = json_dict.get('start_line', None)
-        end_line = json_dict.get('end_line', None)
-        test_methods = json_dict.get('test_methods', [])
-        source_path = json_dict.get('source_path', [])
-        children = json_dict.get('children', [])
-        parser = json_dict.get('parser', None)
-
-        return cls(
-            source_path,
-            start_line,
-            end_line,
-            parser,
-            region_tags,
-            test_methods,
-            children
-        )
+    url: str = None
+    http_methods: List[str] = []

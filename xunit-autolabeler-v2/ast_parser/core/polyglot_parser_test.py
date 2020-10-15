@@ -39,7 +39,7 @@ def _create_fixtures(test_folder, add_main=False):
     source_path = path.join(test_folder_path, test_file)
 
     source_methods_json = _parse_json(repo_json)
-    source_methods = [pdd.PolyglotDriftData.from_json_dict(json_dict)
+    source_methods = [pdd.PolyglotDriftData(**json_dict)
                       for json_dict in source_methods_json]
 
     source_region_tags = \
