@@ -102,7 +102,7 @@ def parse(nodes: List[Any]) -> List[Any]:
                     handler_class.name,
                     'webapp2_router',
                     method.lineno,
-                    webapp2_http_method=method.name,
+                    http_methods=[method.name],
                     url=class_name_url_map[handler_class.name]
                 )
             else:

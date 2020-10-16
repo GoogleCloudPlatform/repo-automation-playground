@@ -75,7 +75,7 @@ def parse(
                 method.lineno,
                 method.name,
                 url,
-                flask_http_methods=http_methods
+                http_methods=http_methods
             )
         else:
             # Flask methods can match other parsers' method definitions

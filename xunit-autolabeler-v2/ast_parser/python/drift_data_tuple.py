@@ -33,8 +33,7 @@ class DriftData(NamedTuple):
     start_line: int
     method_name: Optional[str] = None
     url: Optional[str] = None
-    flask_http_methods: List[str] = []
-    webapp2_http_method: Optional[str] = None
+    http_methods: List[str] = []
 
     # Properties set by source_parser.py
     source_path: Optional[str] = None

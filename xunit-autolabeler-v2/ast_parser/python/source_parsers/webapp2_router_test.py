@@ -51,15 +51,12 @@ class WebApp2RouterTests(unittest.TestCase):
         drift = first_method.drift
 
         assert drift.url == '/'
-        assert drift.webapp2_http_method == 'get'
+        assert drift.http_methods == ['get']
         assert drift.name == 'get'
 
         assert drift.class_name == 'ValidRoute'
         assert drift.parser == 'webapp2_router'
         assert drift.start_line == 36
-
-        # Make sure flask_http_methods wasn't accidentally set
-        assert drift.flask_http_methods == []
 
     def test_ignores_WSGIApplication_nodes_without_webapp2(self):
         assert 'RouteWithoutProperSubclass' not in self.class_names
