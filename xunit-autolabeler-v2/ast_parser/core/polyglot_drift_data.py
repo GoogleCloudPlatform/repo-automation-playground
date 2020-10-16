@@ -32,6 +32,5 @@ class PolyglotDriftData(NamedTuple):
     region_tags: List[str] = []
     test_methods: List[Tuple[str, str]] = []
     children: List[str] = []
-
     url: str = None
     http_methods: List[str] = []
