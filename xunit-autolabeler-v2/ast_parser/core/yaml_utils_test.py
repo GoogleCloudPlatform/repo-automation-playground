@@ -20,6 +20,24 @@ from ast_parser.core import polyglot_drift_data, yaml_utils
 import pytest
 
 
+def _create_source_methods_json(region_tag, test_methods):
+    return [polyglot_drift_data.PolyglotDriftData(
+        # Unused (but non-optional) properties
+        # These properties are required outside of tests
+        name=None,
+        class_name=None,
+        method_name=None,
+        source_path=None,
+        start_line=None,
+        end_line=None,
+        parser=None,
+
+        # Useful properties
+        region_tags=[region_tag],
+        test_methods=test_methods
+    )]
+
+
 class HandleOverwritesTests(unittest.TestCase):
     @pytest.fixture(autouse=True)
     def _test_dir(self):
@@ -28,28 +46,25 @@ class HandleOverwritesTests(unittest.TestCase):
             'test_data/yaml/overwrite_tests/'
         )
 
-    def _create_source_methods_json(self, region_tag):
-        return [polyglot_drift_data.PolyglotDriftData(
-            region_tags=[region_tag],
-            test_methods=[('some_test_file.py', 'test_something')]
-        )]
-
     def test_noop_if_region_tag_not_modified(self):
         source_methods_json = \
-            self._create_source_methods_json('method_0')
+            _create_source_methods_json(
+                'method_0', [('some_test_file.py', 'test_something')])
         yaml_utils._handle_overwrites(source_methods_json, self.TEST_DIR)
 
         assert len(source_methods_json[0].test_methods) == 1
 
     def test_noop_if_overwrite_omitted(self):
         source_methods_json = \
-            self._create_source_methods_json('method_1')
+            _create_source_methods_json(
+                'method_1', [('some_test_file.py', 'test_something')])
         yaml_utils._handle_overwrites(source_methods_json, self.TEST_DIR)
         assert len(source_methods_json[0].test_methods) == 1
 
     def test_handles_overwrite_if_true(self):
         source_methods_json = \
-            self._create_source_methods_json('method_2')
+            _create_source_methods_json(
+                'method_2', [('some_test_file.py', 'test_something')])
         yaml_utils._handle_overwrites(source_methods_json, self.TEST_DIR)
         assert source_methods_json[0].test_methods == []
 
@@ -62,14 +77,9 @@ class HandleAdditionsClauseTests(unittest.TestCase):
             'test_data/yaml/smoke_tests/'
         )
 
-    def _create_source_methods_json(self, region_tag):
-        return [polyglot_drift_data.PolyglotDriftData(
-            region_tags=[region_tag]
-        )]
-
     def test_handles_additions_tag(self):
         source_methods_json = \
-            self._create_source_methods_json('additions_tests')
+            _create_source_methods_json('additions_tests', [])
         yaml_utils._handle_additions_clause(
             source_methods_json, self.TEST_DIR)
 
@@ -80,7 +90,7 @@ class HandleAdditionsClauseTests(unittest.TestCase):
 
     def test_is_bidirectional(self):
         source_methods_json = \
-            self._create_source_methods_json('detectable_tag')
+            _create_source_methods_json('detectable_tag', [])
         yaml_utils._handle_additions_clause(
             source_methods_json, self.TEST_DIR)
 
@@ -91,7 +101,7 @@ class HandleAdditionsClauseTests(unittest.TestCase):
 
     def test_ignores_omitted_region_tags(self):
         source_methods_json = \
-            self._create_source_methods_json('not_mentioned')
+            _create_source_methods_json('not_mentioned', [])
         yaml_utils._handle_additions_clause(
             source_methods_json, self.TEST_DIR)
 
@@ -106,10 +116,9 @@ class HandleManuallySpecifiedTests(unittest.TestCase):
             'test_data/yaml/smoke_tests/'
         )
 
-        source_methods_json = [polyglot_drift_data.PolyglotDriftData(
-            region_tags=['additions_tests'],
-            test_methods=TEST_METHODS,
-        )]
+        source_methods_json = _create_source_methods_json(
+            'additions_tests', TEST_METHODS,
+        )
 
         yaml_utils._handle_manually_specified_tests(
             source_methods_json, ROOT_DIR)
@@ -127,10 +136,10 @@ class HandleManuallySpecifiedTests(unittest.TestCase):
             'test_data/yaml/overwrite_tests/'
         )
 
-        source_methods_json = [polyglot_drift_data.PolyglotDriftData(
-            region_tags=['method_2'],
-            test_methods=TEST_METHODS,
-        )]
+        source_methods_json = _create_source_methods_json(
+            'method_2',
+            TEST_METHODS,
+        )
 
         yaml_utils._handle_manually_specified_tests(
             source_methods_json, ROOT_DIR)
