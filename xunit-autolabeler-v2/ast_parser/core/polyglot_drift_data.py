@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from typing import List, NamedTuple, Tuple
 
 
 class PolyglotDriftData(NamedTuple):
     """Struct for storing snippet metadata
+    
     This object stores language-agnostic ("polyglot")
     snippet data extracted from snippet source files
     for use by the second-stage "polyglot" parser.
