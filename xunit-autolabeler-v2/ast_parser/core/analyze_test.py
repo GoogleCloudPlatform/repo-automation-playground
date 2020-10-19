@@ -76,7 +76,7 @@ class AnalyzeMiscTests(unittest.TestCase):
             _TEST_DIR
         )
 
-        source_methods = analyze_result[3]
+        _, _, _, source_methods = analyze_result
         tag_sets = [method.region_tags for method in source_methods]
 
         assert sum(tag_set == ['not_main'] for tag_set in tag_sets) == 1
@@ -116,10 +116,10 @@ class AnalyzeSmokeTests(unittest.TestCase):
             _TEST_DIR
         )
 
-        self.grep_tags = analyze_result[0]
-        self.source_tags = analyze_result[1]
-        self.ignored_tags = analyze_result[2]
-        self.source_methods = analyze_result[3]
+        (self.grep_tags,
+         self.source_tags,
+         self.ignored_tags,
+         self.source_methods) = analyze_result
 
     def test_grep_tags_includes_undetected_tags(self):
         assert 'main_method' not in self.source_tags
