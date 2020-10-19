@@ -22,7 +22,7 @@ import mock
 import pytest
 
 
-TEST_DIR = os.path.join(
+_TEST_DIR = os.path.join(
     os.path.dirname(__file__),
     'test_data/parser'
 )
@@ -31,7 +31,7 @@ TEST_DIR = os.path.join(
 class AnalyzeBasicTests(unittest.TestCase):
     @pytest.fixture(autouse=True)
     def _get_analyze_result(self):
-        basic_test_dir = os.path.join(TEST_DIR, 'edge_cases')
+        basic_test_dir = os.path.join(_TEST_DIR, 'edge_cases')
         analyze_result = analyze.analyze_json(
             os.path.join(basic_test_dir, 'polyglot_snippet_data.json'),
             basic_test_dir
@@ -66,14 +66,14 @@ class AnalyzeMiscTests(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, 'not found!'):
                 analyze.analyze_json(
-                    os.path.join(TEST_DIR, 'polyglot_snippet_data.json'),
-                    TEST_DIR
+                    os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
+                    _TEST_DIR
                 )
 
     def test_dedupes_region_tags(self):
         analyze_result = analyze.analyze_json(
-            os.path.join(TEST_DIR, 'polyglot_snippet_data.json'),
-            TEST_DIR
+            os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
+            _TEST_DIR
         )
 
         source_methods = analyze_result[3]
@@ -89,20 +89,20 @@ class AnalyzeMockCallTests(unittest.TestCase):
             parser_mock.get_region_tag_regions.return_value = ([], [])
 
             analyze.analyze_json(
-                os.path.join(TEST_DIR, 'polyglot_snippet_data.json'),
-                TEST_DIR
+                os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
+                _TEST_DIR
             )
 
             source_path = os.path.abspath(
-                os.path.join(TEST_DIR, 'http/http_main.py'))
+                os.path.join(_TEST_DIR, 'http/http_main.py'))
             parser_mock.get_region_tag_regions.assert_any_call(source_path)
 
     def test_adds_yaml_data(self):
         with mock.patch('ast_parser.core.analyze.yaml_utils') \
           as yaml_mock:
             analyze.analyze_json(
-                os.path.join(TEST_DIR, 'polyglot_snippet_data.json'),
-                TEST_DIR
+                os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
+                _TEST_DIR
             )
 
             yaml_mock.add_yaml_data_to_source_methods.assert_called()
@@ -112,8 +112,8 @@ class AnalyzeSmokeTests(unittest.TestCase):
     @pytest.fixture(autouse=True)
     def _get_analyze_result(self):
         analyze_result = analyze.analyze_json(
-            os.path.join(TEST_DIR, 'polyglot_snippet_data.json'),
-            TEST_DIR
+            os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
+            _TEST_DIR
         )
 
         self.grep_tags = analyze_result[0]
