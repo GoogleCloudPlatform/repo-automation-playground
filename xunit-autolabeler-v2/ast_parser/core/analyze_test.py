@@ -37,10 +37,10 @@ class AnalyzeBasicTests(unittest.TestCase):
             basic_test_dir
         )
 
-        self.grep_tags = analyze_result[0]
-        self.source_tags = analyze_result[1]
-        self.ignored_tags = analyze_result[2]
-        self.source_methods = analyze_result[3]
+        (self.grep_tags,
+         self.source_tags,
+         self.ignored_tags,
+         self.source_methods) = analyze_result
 
     def test_normalizes_source_paths(self):
         assert self.source_methods != []

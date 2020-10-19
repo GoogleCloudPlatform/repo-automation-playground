@@ -59,15 +59,15 @@ def analyze_json(
         # Normalize source_path values
         parent_path = path.dirname(repo_json)
         for method in json_methods:
-            method['source_path'] = \
-                path.join(parent_path, method['source_path'])
-            method['test_methods'] = \
-                [tuple(test) for test in method['test_methods']]
+            method['source_path'] = (
+                path.join(parent_path, method['source_path']))
+            method['test_methods'] = (
+                [tuple(test) for test in method['test_methods']])
 
             tuple_methods.append(
                 pdd.PolyglotDriftData(**method))
 
-    source_filepaths = set([method.source_path for method in tuple_methods])
+    source_filepaths = set(method.source_path for method in tuple_methods)
 
     grep_tags = set()
     ignored_tags = set()
@@ -80,18 +80,19 @@ def analyze_json(
                 ' from its generated location?'
             )
 
-        (region_tags, ignored_tag_names) = \
-            polyglot_parser.get_region_tag_regions(source_file)
+        region_tags, ignored_tag_names = (
+            polyglot_parser.get_region_tag_regions(source_file))
 
-        grep_tags = grep_tags.union(set([t[0] for t in region_tags]))
+        grep_tags = (
+            grep_tags.union(set(region[0] for region in region_tags)))
         ignored_tags = ignored_tags.union(set(ignored_tag_names))
 
         for idx, method in enumerate(tuple_methods):
             if method.source_path != source_file:
                 continue
 
-            new_method = \
-                polyglot_parser.add_region_tags_to_method(method, region_tags)
+            new_method = (
+                polyglot_parser.add_region_tags_to_method(method, region_tags))
             tuple_methods[idx] = new_method
 
     source_methods = [method for method in tuple_methods if method.region_tags]
@@ -124,4 +125,4 @@ def analyze_json(
     ignored_tags = ignored_tags.union(
         yaml_utils.get_untested_region_tags(root_dir))
 
-    return (grep_tags, source_tags, list(ignored_tags), source_methods)
+    return grep_tags, source_tags, list(ignored_tags), source_methods
