@@ -14,7 +14,7 @@
 
 import json
 from os import path
-from typing import List, Tuple
+from typing import List, Set, Tuple
 
 from . import polyglot_drift_data as pdd, polyglot_parser, yaml_utils
 
@@ -22,7 +22,7 @@ from . import polyglot_drift_data as pdd, polyglot_parser, yaml_utils
 def analyze_json(
     repo_json: str,
     root_dir: str
-) -> Tuple[List[str], List[str], List[str], List[pdd.PolyglotDriftData]]:
+) -> Tuple[Set[str], Set[str], Set[str], List[pdd.PolyglotDriftData]]:
     """Perform language-agnostic AST analysis on a directory
 
     This function processes a given directory's language-specific
@@ -69,8 +69,8 @@ def analyze_json(
 
     source_filepaths = set(method.source_path for method in tuple_methods)
 
-    grep_tags = set()
-    ignored_tags = set()
+    grep_tags: Set[str] = set()
+    ignored_tags: Set[str] = set()
 
     for source_file in source_filepaths:
         if not path.isfile(source_file):
@@ -111,13 +111,15 @@ def analyze_json(
     polyglot_parser.add_children_drift_data(source_methods)
     yaml_utils.add_yaml_data_to_source_methods(source_methods, root_dir)
 
-    source_tags = set()
+    source_tags: Set[str] = set()
     for method in source_methods:
         source_tags = source_tags.union(set(method.region_tags))
 
     # Remove automatically ignored region tags from region tag lists
-    grep_tags = [tag for tag in grep_tags if tag not in ignored_tags]
-    source_tags = [tag for tag in source_tags if tag not in ignored_tags]
+    grep_tags = set(tag for tag in grep_tags
+                    if tag not in ignored_tags)
+    source_tags = set(tag for tag in source_tags
+                      if tag not in ignored_tags)
 
     # Add manually ignored (via yaml) tags to ignored tags list
     #   These should *not* overlap w/ source_tags, but we
@@ -125,4 +127,4 @@ def analyze_json(
     ignored_tags = ignored_tags.union(
         yaml_utils.get_untested_region_tags(root_dir))
 
-    return grep_tags, source_tags, list(ignored_tags), source_methods
+    return grep_tags, source_tags, ignored_tags, source_methods
