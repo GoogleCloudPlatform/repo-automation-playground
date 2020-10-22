@@ -19,8 +19,108 @@ from typing import List, Set, Tuple
 from . import polyglot_drift_data as pdd, polyglot_parser, yaml_utils
 
 
+def _get_methods(snippet_data_json: str) -> List[pdd.PolyglotDriftData]:
+    """Retrieves a list of snippet methods from a JSON repo file
+       (usually named polyglot_snippet_data.json)
+
+    Args:
+        snippet_data_json: The path to a polyglot_snippet_data.json file
+
+    Returns:
+        A list of methods retrieved from the specified JSON file
+    """
+    tuple_methods = []
+    with open(snippet_data_json, 'r') as file:
+        json_content = '\n'.join(file.readlines())
+        json_methods = json.loads(json_content)
+
+        # Normalize source_path values
+        parent_path = path.dirname(snippet_data_json)
+        for method in json_methods:
+            method['source_path'] = (
+                path.join(parent_path, method['source_path']))
+            method['test_methods'] = (
+                [tuple(test) for test in method['test_methods']])
+
+            tuple_methods.append(
+                pdd.PolyglotDriftData(**method))
+
+    return tuple_methods
+
+
+def _process_file_region_tags(
+    source_file: str,
+    snippet_data_json: str,
+    tuple_methods: List[pdd.PolyglotDriftData]
+) -> Tuple[Set[str], Set[str]]:
+    """Process a snippet source file's region tags
+
+    This method extracts region tags from a snippet source file,
+    classifies them, and adds them to any matching snippet method
+    objects. It then returns the classified groups of region tags
+    it extracted.
+
+    Arguments:
+        source_file: path to the target snippet source file
+        snippet_data_json: The path to a polyglot_snippet_data.json file
+        tuple_methods: path to the target foobar
+
+    Modifies:
+        Adds region tags to their respective methods in tuple_methods
+
+    Returns:
+        A tuple containing the following:
+         - A list of *every* tag found in the snippet source file
+         - A list of 'ignored' tags found in the snippet source file
+    """
+    if not path.isfile(source_file):
+        raise ValueError(
+            f'Path {source_file} in file {snippet_data_json}'
+            ' not found! '
+            'Did you move polyglot_snippet_data.json from its'
+            ' generated location?'
+        )
+
+    region_tags, ignored_tag_names = (
+        polyglot_parser.get_region_tag_regions(source_file))
+
+    grep_tag_names = set(region[0] for region in region_tags)
+    ignored_tag_names = set(ignored_tag_names)
+
+    for method in tuple_methods:
+        if method.source_path != source_file:
+            continue
+
+        polyglot_parser.add_region_tags_to_method(method, region_tags)
+
+    return grep_tag_names, ignored_tag_names
+
+
+def _dedupe_source_methods(
+    source_methods: List[pdd.PolyglotDriftData]
+) -> None:
+    """Remove duplicate methods in a method list
+
+    This method is a helper function for analyze_json()
+    that de-dupes methods based on their region tag list.
+    (Region tag order within that list should *not* matter.)
+
+    Arguments:
+        source_methods: the list of methods to be de-duped
+
+    Returns:
+        A de-duped list of (snippet) source methods
+    """
+    source_methods_deduped = {
+        ','.join(sorted(method.region_tags)): method
+        for method in source_methods
+    }.values()
+
+    return list(source_methods_deduped)
+
+
 def analyze_json(
-    repo_json: str,
+    snippet_data_json: str,
     root_dir: str
 ) -> Tuple[Set[str], Set[str], Set[str], List[pdd.PolyglotDriftData]]:
     """Perform language-agnostic AST analysis on a directory
@@ -34,8 +134,8 @@ def analyze_json(
     'returns' section.
 
     Arguments:
-        repo_json: A path to a polyglot_snippet_data.json file
-                   generated for the specified root_dir
+        snippet_data_json: A path to a polyglot_snippet_data.json
+                           file generated for the specified root_dir
         root_dir: The root directory to perform AST analysis on
 
     Returns:
@@ -51,21 +151,7 @@ def analyze_json(
            detected by the AST parser in the given directory
            and its subdirectories
     """
-    tuple_methods = []
-    with open(repo_json, 'r') as file:
-        json_content = '\n'.join(file.readlines())
-        json_methods = json.loads(json_content)
-
-        # Normalize source_path values
-        parent_path = path.dirname(repo_json)
-        for method in json_methods:
-            method['source_path'] = (
-                path.join(parent_path, method['source_path']))
-            method['test_methods'] = (
-                [tuple(test) for test in method['test_methods']])
-
-            tuple_methods.append(
-                pdd.PolyglotDriftData(**method))
+    tuple_methods = _get_methods(snippet_data_json)
 
     source_filepaths = set(method.source_path for method in tuple_methods)
 
@@ -73,40 +159,15 @@ def analyze_json(
     ignored_tags: Set[str] = set()
 
     for source_file in source_filepaths:
-        if not path.isfile(source_file):
-            raise ValueError(
-                f'Path {source_file} in file {repo_json} not found! '
-                'Did you move polyglot_snippet_data.json'
-                ' from its generated location?'
-            )
+        grep_tag_names, ignored_tag_names = (
+            _process_file_region_tags(
+                source_file, snippet_data_json, tuple_methods))
 
-        region_tags, ignored_tag_names = (
-            polyglot_parser.get_region_tag_regions(source_file))
-
-        grep_tags = (
-            grep_tags.union(set(region[0] for region in region_tags)))
-        ignored_tags = ignored_tags.union(set(ignored_tag_names))
-
-        for idx, method in enumerate(tuple_methods):
-            if method.source_path != source_file:
-                continue
-
-            new_method = (
-                polyglot_parser.add_region_tags_to_method(method, region_tags))
-            tuple_methods[idx] = new_method
+        grep_tags = grep_tags.union(grep_tag_names)
+        ignored_tags = ignored_tags.union(ignored_tag_names)
 
     source_methods = [method for method in tuple_methods if method.region_tags]
-
-    # Dedupe source methods
-    source_method_keys = set()
-    source_methods_deduped = []
-    for method in source_methods:
-        key = ','.join(method.region_tags)
-        if key not in source_method_keys:
-            source_methods_deduped.append(method)
-            source_method_keys.add(key)
-
-    source_methods = source_methods_deduped
+    source_methods = _dedupe_source_methods(source_methods)
 
     polyglot_parser.add_children_drift_data(source_methods)
     yaml_utils.add_yaml_data_to_source_methods(source_methods, root_dir)

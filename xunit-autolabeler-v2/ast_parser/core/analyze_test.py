@@ -15,7 +15,7 @@
 import os
 import unittest
 
-from ast_parser.core import analyze
+from ast_parser.core import analyze, polyglot_drift_data as pdd
 
 import mock
 
@@ -28,61 +28,37 @@ _TEST_DIR = os.path.join(
 )
 
 
-class AnalyzeBasicTests(unittest.TestCase):
+class GetMethodsTest(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def _get_analyze_result(self):
-        basic_test_dir = os.path.join(_TEST_DIR, 'edge_cases')
-        analyze_result = analyze.analyze_json(
-            os.path.join(basic_test_dir, 'polyglot_snippet_data.json'),
-            basic_test_dir
+    def _methods(self):
+        json_path = os.path.join(
+            _TEST_DIR,
+            'edge_cases/polyglot_snippet_data.json'
         )
+        self.method = analyze._get_methods(json_path)[0]
 
-        (self.grep_tags,
-         self.source_tags,
-         self.ignored_tags,
-         self.source_methods) = analyze_result
+    def test_retrieves_test_methods(self):
+        assert len(self.method.test_methods) == 1
 
-    def test_normalizes_source_paths(self):
-        assert self.source_methods != []
+    def test_source_paths_are_absolute(self):
+        assert os.path.isabs(self.method.source_path)
 
-        source_path = self.source_methods[0].source_path
-        assert source_path is not None
-        assert os.path.isabs(source_path)
+    def test_test_paths_are_relative(self):
+        test_data = self.method.test_methods[0]
+        test_path = test_data[0]
 
-    def test_converts_test_methods_to_tuples(self):
-        assert self.source_methods != []
-
-        test_methods = self.source_methods[0].test_methods
-        assert test_methods != []
-
-        test = test_methods[0]
-        assert type(test) == tuple
+        assert not os.path.isabs(test_path)
 
 
-class AnalyzeMiscTests(unittest.TestCase):
+class ProcessRegionTagsTest(unittest.TestCase):
     def test_raises_error_on_missing_source_file(self):
-        with mock.patch('ast_parser.core.analyze.path') as path_mock:
-            path_mock.isfile.return_value = False
+        with self.assertRaisesRegex(ValueError, 'not found!'):
+            analyze._process_file_region_tags(
+                'bad_path',
+                os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
+                _TEST_DIR
+            )
 
-            with self.assertRaisesRegex(ValueError, 'not found!'):
-                analyze.analyze_json(
-                    os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
-                    _TEST_DIR
-                )
-
-    def test_dedupes_region_tags(self):
-        analyze_result = analyze.analyze_json(
-            os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
-            _TEST_DIR
-        )
-
-        _, _, _, source_methods = analyze_result
-        tag_sets = [method.region_tags for method in source_methods]
-
-        assert sum(tag_set == ['not_main'] for tag_set in tag_sets) == 1
-
-
-class AnalyzeMockCallTests(unittest.TestCase):
     def test_adds_child_drift_data(self):
         with mock.patch('ast_parser.core.analyze.polyglot_parser') \
           as parser_mock:
@@ -97,38 +73,47 @@ class AnalyzeMockCallTests(unittest.TestCase):
                 os.path.join(_TEST_DIR, 'http/http_main.py'))
             parser_mock.get_region_tag_regions.assert_any_call(source_path)
 
-    def test_adds_yaml_data(self):
-        with mock.patch('ast_parser.core.analyze.yaml_utils') \
-          as yaml_mock:
-            analyze.analyze_json(
-                os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
-                _TEST_DIR
-            )
+    def test_labels_ignored_tags(self):
+        json_path = os.path.join(
+            _TEST_DIR,
+            'edge_cases/polyglot_snippet_data.json'
+        )
+        tuple_methods = analyze._get_methods(json_path)
 
-            yaml_mock.add_yaml_data_to_source_methods.assert_called()
-
-
-class AnalyzeSmokeTests(unittest.TestCase):
-    @pytest.fixture(autouse=True)
-    def _get_analyze_result(self):
-        analyze_result = analyze.analyze_json(
-            os.path.join(_TEST_DIR, 'polyglot_snippet_data.json'),
-            _TEST_DIR
+        _, ignored_tags = analyze._process_file_region_tags(
+            os.path.join(_TEST_DIR, 'flask/flask_main.py'),
+            json_path,
+            tuple_methods
         )
 
-        (self.grep_tags,
-         self.source_tags,
-         self.ignored_tags,
-         self.source_methods) = analyze_result
+        assert 'app' in ignored_tags
 
-    def test_grep_tags_includes_undetected_tags(self):
-        assert 'main_method' not in self.source_tags
-        assert 'main_method' in self.grep_tags
 
-    def test_source_tags_only_includes_detected_tags(self):
-        assert 'not_main' in self.source_tags
-        assert 'main_method' not in self.source_tags
+class DedupeSourceMethodsTest(unittest.TestCase):
+    def _create_drift_data(self, region_tags):
+        return pdd.PolyglotDriftData(
+            name=None,
+            class_name=None,
+            method_name=None,
+            source_path=None,
+            start_line=None,
+            end_line=None,
+            parser=None,
+            region_tags=region_tags
+        )
 
-    def test_omits_ignored_tags(self):
-        assert 'app' not in self.source_tags
-        assert 'app' in self.ignored_tags
+    def test_dedupes_methods(self):
+        methods = [
+            self._create_drift_data(['a', 'b']),
+            self._create_drift_data(['a', 'b'])
+        ]
+
+        assert len(analyze._dedupe_source_methods(methods)) == 1
+
+    def test_ignores_region_tag_order(self):
+        methods = [
+            self._create_drift_data(['a', 'b']),
+            self._create_drift_data(['b', 'a'])
+        ]
+
+        assert len(analyze._dedupe_source_methods(methods)) == 1
