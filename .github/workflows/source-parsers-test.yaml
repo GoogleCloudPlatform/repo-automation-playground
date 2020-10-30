@@ -16,5 +16,5 @@ jobs:
       env:
         TEST_ENV: test
         TRAMPOLINE_BUILD_FILE: ci-cd/p3_temp/test_ast_parser.sh  # p3 = python polyglot parser
-        TRAMPOLINE_IMAGE: gcr.io/cloud-devrel-kokoro-resources/python-samples-testing-docker
+        TRAMPOLINE_IMAGE: gcr.io/cloud-devrel-kokoro-resources/python-multi
       run: ${GITHUB_WORKSPACE}/ci-cd/trampoline_v2.sh

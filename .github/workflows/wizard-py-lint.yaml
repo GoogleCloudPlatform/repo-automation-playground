@@ -16,5 +16,5 @@ jobs:
       env:
         TEST_ENV: test
         TRAMPOLINE_BUILD_FILE: ci-cd/lint_wizard_py.sh
-        TRAMPOLINE_IMAGE: gcr.io/cloud-devrel-kokoro-resources/python-samples-testing-docker
+        TRAMPOLINE_IMAGE: gcr.io/cloud-devrel-kokoro-resources/python-multi
       run: ${GITHUB_WORKSPACE}/ci-cd/trampoline_v2.sh
