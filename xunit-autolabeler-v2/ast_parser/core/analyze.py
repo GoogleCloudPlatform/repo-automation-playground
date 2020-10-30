@@ -98,12 +98,13 @@ def _process_file_region_tags(
 
 def _dedupe_source_methods(
     source_methods: List[pdd.PolyglotDriftData]
-) -> None:
-    """Remove duplicate methods in a method list
+) -> List[pdd.PolyglotDriftData]:
+    """Remove methods with duplicate region tag-sets in a method list
 
     This method is a helper function for analyze_json()
-    that de-dupes methods based on their region tag list.
-    (Region tag order within that list should *not* matter.)
+    that de-dupes methods based on their region tag-set.
+    (Order-invariant region tag sets are unique IDs for
+     source methods.)
 
     Arguments:
         source_methods: the list of methods to be de-duped
