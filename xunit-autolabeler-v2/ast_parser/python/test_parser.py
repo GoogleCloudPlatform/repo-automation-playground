@@ -222,7 +222,7 @@ def store_tests_on_methods(
                             'within a map entry must be identical!'
                         )
 
-                    if source_root in list(source_paths)[0]:
+                    if source_root in os.path.abspath(list(source_paths)[0]):
                         new_test_methods += test_to_method_key_map[key]
 
         method.drift = method.drift._replace(test_methods=new_test_methods)

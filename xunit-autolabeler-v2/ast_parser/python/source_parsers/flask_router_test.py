@@ -73,7 +73,7 @@ class DecoratorTests(unittest.TestCase):
 
         assert drift.parser == 'flask_router'
         assert drift.class_name == 'test_flask_class'
-        assert drift.start_line == 47
+        assert drift.start_line == 48
 
         # Don't check http_methods here
         # (covered in HttpMethodTests)
