@@ -21,7 +21,7 @@ from ast_parser.lib import file_utils
 import yaml
 
 
-def __attr_validate_required_values(
+def _attr_validate_required_values(
     yaml_path: str,
     yaml_entry: Dict[str, Any],
     tag: str,
@@ -54,7 +54,7 @@ def __attr_validate_required_values(
     return None
 
 
-def __attr_validate_additions(
+def _attr_validate_additions(
     yaml_path: str,
     yaml_entry: Dict[str, Any],
     tag: str,
@@ -93,7 +93,7 @@ def __attr_validate_additions(
     return None
 
 
-def __attr_validate_manually_specified_tests(
+def _attr_validate_manually_specified_tests(
     yaml_path: str,
     yaml_entry: Dict[str, Any],
     tag: str,
