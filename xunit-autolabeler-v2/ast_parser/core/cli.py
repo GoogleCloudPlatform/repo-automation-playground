@@ -56,8 +56,8 @@ def validate_yaml(
                      results to. Results will be written to stdout if this
                      argument is omitted.
     """
-    (grep_tags, source_tags, ignored_tags, source_methods) = \
-        analyze.analyze_json(data_json, root_dir)
+    grep_tags, source_tags, ignored_tags, source_methods = (
+        analyze.analyze_json(data_json, root_dir))
 
     (is_valid, output) = cli_yaml.validate_yaml_syntax(
         root_dir, grep_tags, source_tags)

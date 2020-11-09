@@ -40,14 +40,17 @@ def __attr_validate_required_values(
     Returns:
         An error message if an attribute is invalid; None otherwise
     """
-    if attr and attr in constants.REQUIRED_KEY_VALUES:
-        actual = yaml_entry[attr]
-        expected = constants.REQUIRED_KEY_VALUES[attr]
-        if actual != expected:
-            return (
-                f'Invalid {attr} value in file {yaml_path} '
-                f'for tag {tag}: {actual}, expected {expected} '
-                ' (or omission)')
+    if not attr or attr not in constants.REQUIRED_KEY_VALUES:
+        return None
+
+    actual = yaml_entry[attr]
+    expected = constants.REQUIRED_KEY_VALUES[attr]
+    if actual != expected:
+        return (
+            f'Invalid {attr} value in file {yaml_path} '
+            f'for tag {tag}: {actual}, expected {expected} '
+            ' (or omission)')
+
     return None
 
 
@@ -57,7 +60,7 @@ def __attr_validate_additions(
     tag: str,
     attr: str,
     grep_tags: List[str]
-):
+) -> Optional[str]:
     """Ensure additions attributes have correct values
 
     This function ensures that additions attributes are lists, and that
@@ -74,15 +77,18 @@ def __attr_validate_additions(
     Returns:
         An error message if the additions attribute is invalid; None otherwise
     """
-    if attr == 'additions':
-        if not isinstance(yaml_entry[attr], list):
-            # additions field must be an array
-            return (f'Additions key for {tag} in '
-                    f'{yaml_path} is not a list!')
-        elif any(t not in grep_tags for t in yaml_entry[attr]):
-            # added tags must be correctly parsed from the codebase
-            return (f'Yaml file {yaml_path} contains region '
-                    f'tag not used in source files: {tag}')
+    if attr != 'additions':
+        return None
+
+    # Additions field must be an array
+    if not isinstance(yaml_entry[attr], list):
+        return (f'Additions key for {tag} in '
+                f'{yaml_path} is not a list!')
+
+    # Added tags must be correctly parsed from the codebase
+    if any(t not in grep_tags for t in yaml_entry[attr]):
+        return (f'Yaml file {yaml_path} contains region '
+                f'tag not used in source files: {tag}')
 
     return None
 
@@ -108,7 +114,8 @@ def __attr_validate_manually_specified_tests(
                    the source code
 
     Returns:
-        An error message if the additions attribute is invalid; None otherwise
+        An error message if the manually-specified tests are invalid; None
+        otherwise
     """
     errors = []
     yaml_dirname = os.path.dirname(yaml_path)
@@ -159,7 +166,7 @@ def _validate_attrs(
                 yaml_entry = parsed_yaml[tag]
                 yaml_keys = list(yaml_entry.keys())
 
-                if len(yaml_keys) == 0:
+                if not yaml_keys:
                     continue
 
                 yaml_attr = yaml_keys[0]
@@ -193,10 +200,10 @@ def _validate_attrs(
                     yaml_attr,
                     grep_tags
                 )
-                if len(manual_errors) != 0:
+                if manual_errors:
                     errors += manual_errors
 
-    is_valid = len(errors) == 0
+    is_valid = not errors
     return (is_valid, errors)
 
 
@@ -226,6 +233,7 @@ def _validate_region_tags(
 
     seen_region_tags = set()
     output = []
+    is_valid = True
 
     for yaml_path in yaml_paths:
         with open(yaml_path, 'r') as file:

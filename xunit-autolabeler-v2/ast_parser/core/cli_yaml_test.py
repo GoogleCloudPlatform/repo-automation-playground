@@ -107,7 +107,6 @@ class ManuallySpecifiedClauseTests(unittest.TestCase):
         self.invalid_out = out
 
     def test_requires_test_tag_file_to_exist(self):
-        print(self.invalid_out)
         assert re.search(
             'Test file .+fake_test.py used in .+drift-data.yml not found!',
             self.invalid_out)
