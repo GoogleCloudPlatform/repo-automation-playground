@@ -21,13 +21,13 @@ from ast_parser.lib import file_utils
 import yaml
 
 
-def _attr_validate_required_values(
+def _attr_required_values_get_errors(
     yaml_path: str,
     yaml_entry: Dict[str, Any],
     tag: str,
     attr: str
 ) -> Optional[str]:
-    """Ensure required-value YAML keys have the correct values
+    """Report incorrect values for required-value YAML keys
 
     Some .drift-data.yml keys only allow a predefined set of values.
 
@@ -54,14 +54,14 @@ def _attr_validate_required_values(
     return None
 
 
-def _attr_validate_additions(
+def _attr_additions_get_errors(
     yaml_path: str,
     yaml_entry: Dict[str, Any],
     tag: str,
     attr: str,
     grep_tags: List[str]
 ) -> Optional[str]:
-    """Ensure additions attributes have correct values
+    """Report any incorrect values for additions attributes
 
     This function ensures that additions attributes are lists, and that
     the child tags they refer to are detected in the codebase.
@@ -93,14 +93,14 @@ def _attr_validate_additions(
     return None
 
 
-def _attr_validate_manually_specified_tests(
+def _attr_manually_specified_tests_get_errors(
     yaml_path: str,
     yaml_entry: Dict[str, Any],
     tag: str,
     attr: str,
     grep_tags: List[str]
 ) -> List[str]:
-    """Ensure manually-specified tests are correct
+    """Report incorrect manually-specified test attributes
 
     This function ensures that manually-specified
     tests refer to files that actually exist.
@@ -134,11 +134,11 @@ def _attr_validate_manually_specified_tests(
     return errors
 
 
-def _validate_attrs(
+def _get_attr_errors(
     yaml_paths: List[str],
     grep_tags: List[str]
 ) -> Tuple[bool, List[str]]:
-    """Validate attributes in a list of .drift-data.yml files
+    """Report attribute errors in a list of .drift-data.yml files
 
     This method verifies that attributes within
     a .drift-data.yml file are used appropriately.
@@ -172,7 +172,7 @@ def _validate_attrs(
                 yaml_attr = yaml_keys[0]
 
                 # Validate keys that require specific values
-                required_value_error = _attr_validate_required_values(
+                required_value_error = _attr_required_values_get_errors(
                     yaml_path,
                     yaml_entry,
                     tag,
@@ -182,7 +182,7 @@ def _validate_attrs(
                     errors.append(required_value_error)
 
                 # Validate additions field
-                additions_error = _attr_validate_additions(
+                additions_error = _attr_additions_get_errors(
                     yaml_path,
                     yaml_entry,
                     tag,
@@ -193,7 +193,7 @@ def _validate_attrs(
                     errors.append(additions_error)
 
                 # Validate manually-specified tests
-                manual_errors = _attr_validate_manually_specified_tests(
+                manual_errors = _attr_manually_specified_tests_get_errors(
                     yaml_path,
                     yaml_entry,
                     tag,
@@ -207,12 +207,12 @@ def _validate_attrs(
     return (is_valid, errors)
 
 
-def _validate_region_tags(
+def _get_region_tag_errors(
     yaml_paths: List[str],
     grep_tags: List[str],
     source_tags: List[str],
 ) -> Tuple[bool, List[str]]:
-    """Validate region-tag keys in a list of .drift-data.yml files
+    """Report region-tag errors in a list of .drift-data.yml files
 
     This method verifies that region tag keys within a .drift-data.yml
     file are used *exactly* once in the source code.
@@ -301,8 +301,8 @@ def validate_yaml_syntax(
     yaml_paths = file_utils.get_drift_yaml_files(root_dir)
 
     (tags_are_valid, tags_output) = (
-        _validate_region_tags(yaml_paths, grep_tags, source_tags))
-    (attrs_are_valid, attrs_output) = _validate_attrs(yaml_paths, grep_tags)
+        _get_region_tag_errors(yaml_paths, grep_tags, source_tags))
+    (attrs_are_valid, attrs_output) = _get_attr_errors(yaml_paths, grep_tags)
 
     output = tags_output + attrs_output
     is_valid = tags_are_valid and attrs_are_valid
