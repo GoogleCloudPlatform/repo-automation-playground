@@ -17,6 +17,5 @@
 #  Pytest root dir: '$REPO_ROOT/'
 #  Python root dir: '$REPO_ROOT/ast_parser'
 import sys
-import os
 
 sys.path.append('..')
