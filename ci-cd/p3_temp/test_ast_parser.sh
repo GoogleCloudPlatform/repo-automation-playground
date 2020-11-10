@@ -25,6 +25,7 @@ pip install --user -r requirements-dev.txt
 # Generate required polyglot_snippet_data.py files
 ./python_bootstrap.py core/test_data/cli/additions
 ./python_bootstrap.py core/test_data/cli/bad_region_tag
+./python_bootstrap.py core/test_data/cli/dotfile_test
 ./python_bootstrap.py core/test_data/cli/dotfile_test/.dotfile
 ./python_bootstrap.py core/test_data/parser
 ./python_bootstrap.py core/test_data/parser/edge_cases
