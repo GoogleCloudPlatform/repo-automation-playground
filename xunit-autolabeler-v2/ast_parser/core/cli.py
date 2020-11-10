@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-from typing import List
+import os
+import xml.etree.ElementTree as etree
+from typing import List, Optional
 
 from ast_parser.core import analyze, cli_yaml
 
@@ -36,12 +37,196 @@ def _write_output(output: List[str], output_file: str) -> None:
             print(line)
 
 
+def list_region_tags(
+    data_json: str,
+    root_dir: str,
+    show_detected: bool,
+    show_undetected: bool,
+    show_test_counts: bool,
+    show_filenames: bool,
+    output_file: Optional[str] = None
+) -> None:
+    """Lists region tags in a directory.
+
+    This method lists the region tags for snippets parsed from a given
+    directory, filtered based on whether each tag was detected by an AST
+    parser (or not). It can also display test counts and/or source filenames
+    for each region tag.
+
+    Args:
+        data_json: A path to a polyglot_drift_data.json file for the specified
+                   root directory
+        root_dir: A path to the target root directory.
+        show_detected: Whether or not to show region tags that *were* detected
+                       by the AST parser
+        show_undetected: Whether or not to show region tags *not* detected by
+                         the AST parser
+        show_test_counts: Whether or not to show test counts for each
+                          AST-parser-detected region tag
+        show_filenames: Whether or not to show source filenames for each
+                        AST-parser-detected region tag
+        output_file: (Optional) A filepath to write the YAML validation
+                     results to. Results will be written to stdout if this
+                     argument is omitted.
+    """
+    output = []
+
+    if show_undetected and show_test_counts:
+        output.append(
+            'WARN Undetected/ignored region tags do not have test counts')
+
+    grep_tags, source_tags, ignored_tags, source_methods = (
+        analyze.analyze_json(data_json, root_dir))
+
+    def _get_test_count_str(region_tag):
+        if not show_test_counts:
+            return ''
+
+        test_data_matches = [method for method in source_methods if
+                             region_tag in method['region_tags']]
+
+        total_tests = 0
+        for test_data in test_data_matches:
+            total_tests += len(test_data['test_methods'])
+
+        return f'({total_tests} test(s))'
+
+    if show_detected:
+        output.append('Detected region tags:')
+        for tag in source_tags:
+            output.append(f'  {tag} {_get_test_count_str(tag)}')
+            if show_filenames:
+                source_file = [method['source_path']
+                               for method in source_methods
+                               if tag in method['region_tags']][0]
+                output.append(f'    Source file: {source_file}')
+
+    if show_undetected:
+        output.append('Undetected region tags:')
+        undetected_tags = [tag for tag in grep_tags
+                           if tag not in source_tags]
+        undetected_tags = [tag for tag in undetected_tags
+                           if tag not in ignored_tags]
+        for tag in undetected_tags:
+            output.append(f'  {tag}')
+
+    if ignored_tags:
+        output.append('Ignored region tags')
+        for tag in ignored_tags:
+            output.append(f'  {tag}')
+
+    _write_output(output, output_file)
+
+
+def list_source_files(
+    data_json: str,
+    root_dir: str,
+    show_tested_files: bool,
+    output_file: str = None
+) -> None:
+    """Lists snippet source file paths in a directory.
+
+    This method lists the source files for snippets parsed from a given
+    directory. It can also filter listed source files based on how many
+    (all, some, or none) of their methods are tested using the
+    show_tested_files parameter.
+
+    Args:
+        data_json: A path to a polyglot_drift_data.json file for the specified
+                   root directory
+        root_dir: A path to the target root directory.
+        show_tested_files: If specified, this method will only list files that
+                           have {all, some, none} of their methods tested.
+        output_file: (Optional) A filepath to write the YAML validation
+                     results to. Results will be written to stdout if this
+                     argument is omitted.
+    """
+    grep_tags, source_tags, ignored_tags, source_methods = (
+        analyze.analyze_json(data_json, root_dir))
+
+    # Ignore methods without region tags
+    source_methods = [method for method in source_methods
+                      if method['region_tags']]
+
+    tested_files = set(method['source_path'] for method in source_methods
+                       if method['test_methods'])
+    untested_files = set(method['source_path'] for method in source_methods
+                         if not method['test_methods'])
+
+    files = set(method['source_path'] for method in source_methods)
+
+    if show_tested_files == 'all':
+        files = [file for file in tested_files if file not in untested_files]
+
+    if show_tested_files == 'some':
+        files = tested_files
+
+    if show_tested_files == 'none':
+        files = [file for file in untested_files if file not in tested_files]
+
+    _write_output(files, output_file)
+
+
+def inject_snippet_mapping(
+    data_json: str,
+    root_dir: str,
+    stdin_lines: List[str],
+    output_file: bool = None
+) -> None:
+    """Adds snippet mapping to XUnit results
+
+    This method injects test-snippet mappings into XUnit test results provided
+    via stdin. It then saves the modified XUnit results to a file (if
+    output_file is specified) or prints them to stdout (if output_file is *not*
+    specified).
+
+    Args:
+        data_json: A path to a polyglot_drift_data.json file for the specified
+                   root directory
+        root_dir: A path to the target root directory.
+        stdin_lines: The lines of an XUnit test result file.
+        output_file: (Optional) A filepath to write the YAML validation
+                     results to. Results will be written to stdout if this
+                     argument is omitted.
+    """
+
+    grep_tags, source_tags, ignored_tags, source_methods = (
+        analyze.analyze_json(data_json, root_dir))
+
+    xunit_tree = etree.fromstring(''.join(stdin_lines))
+
+    for elem in xunit_tree.findall('.//testcase'):
+        class_parts = [part for part in elem.attrib['classname'].split('.')
+                       if not part.startswith('Test')]
+        test_key = (class_parts[-1], elem.attrib['name'])
+        for method in source_methods:
+            method_test_keys = [(
+                os.path.splitext(os.path.basename(test[0]))[0],
+                test[1]
+            ) for test in method['test_methods']]
+
+            if test_key in method_test_keys:
+                # Inject region tags into region_tags XML attribute
+                existing_tag_str = elem.attrib.get('region_tags')
+                existing_tag_list = (
+                    existing_tag_str.split(',') if existing_tag_str else [])
+
+                deduped_tag_list = (
+                    list(set(existing_tag_list + method['region_tags'])))
+
+                elem.set('region_tags', ','.join(deduped_tag_list))
+
+    _write_output(
+        [etree.tostring(xunit_tree).decode()],
+        output_file)
+
+
 def validate_yaml(
     data_json: str,
     root_dir: str,
     output_file: str = None
 ) -> None:
-    """ Validates .drift-data.yml files in a directory
+    """Validates .drift-data.yml files in a directory
 
     This method coordinates the function calls necessary to validate
     .drift-data.yml files in a given directory. (The validation process
