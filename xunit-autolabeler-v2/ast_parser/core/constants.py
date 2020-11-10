@@ -49,7 +49,7 @@ FLASK_DEFAULT_METHODS = ('get',)
 
 TEST_FILE_MARKER = 'test.py'
 
-RESERVED_YAML_KEYS = frozenset(['tested', 'overwrite', 'ignore', 'additions'])
+RESERVED_YAML_KEYS = frozenset(['tested', 'overwrite', 'additions'])
 
 SOURCE_REQUIRED_FOR_KEYS = frozenset(['overwrite'])
 SOURCE_BANNED_FOR_KEYS_WITHOUT_OVERWRITE = frozenset(['tested'])
@@ -57,7 +57,6 @@ SOURCE_BANNED_FOR_KEYS_WITHOUT_OVERWRITE = frozenset(['tested'])
 REQUIRED_KEY_VALUES = frozendict({
     'tested': False,
     'overwrite': True,
-    'ignore': True
 })
 
 # region tags that don't uniquely identify a sample

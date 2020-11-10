@@ -11,3 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Add the parent 'ast_parser' module to PYTHONPATH
+# for consistency between Python and pytest
+#  Pytest root dir: '$REPO_ROOT/'
+#  Python root dir: '$REPO_ROOT/ast_parser'
+import sys
+import os
+
+sys.path.append('..')
