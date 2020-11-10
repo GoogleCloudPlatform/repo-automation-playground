@@ -172,7 +172,7 @@ def _validate_attrs(
                 yaml_attr = yaml_keys[0]
 
                 # Validate keys that require specific values
-                required_value_error = __attr_validate_required_values(
+                required_value_error = _attr_validate_required_values(
                     yaml_path,
                     yaml_entry,
                     tag,
@@ -182,7 +182,7 @@ def _validate_attrs(
                     errors.append(required_value_error)
 
                 # Validate additions field
-                additions_error = __attr_validate_additions(
+                additions_error = _attr_validate_additions(
                     yaml_path,
                     yaml_entry,
                     tag,
@@ -193,7 +193,7 @@ def _validate_attrs(
                     errors.append(additions_error)
 
                 # Validate manually-specified tests
-                manual_errors = __attr_validate_manually_specified_tests(
+                manual_errors = _attr_validate_manually_specified_tests(
                     yaml_path,
                     yaml_entry,
                     tag,
