@@ -14,9 +14,10 @@
 
 import os
 import xml.etree.ElementTree as etree
-from typing import List, Optional
+from typing import Any, Dict, Tuple, List, Optional
 
 from ast_parser.core import analyze, cli_yaml
+from ast_parser.core import cli_list_region_tags, cli_list_region_tags_datatypes
 
 
 def _write_output(output: List[str], output_file: str) -> None:
@@ -26,8 +27,8 @@ def _write_output(output: List[str], output_file: str) -> None:
     filepath (if one is provided) or stdout (if no filepath is provided).
 
     Args:
-        output: A list of strings to write to the chosen output
-        output_file: One of {None, a filepath}
+        output: A list of strings to write to the chosen output.
+        output_file: One of {None, a filepath}.
     """
     if output_file:
         with open(output_file, 'w+') as file:
@@ -69,53 +70,18 @@ def list_region_tags(
                      results to. Results will be written to stdout if this
                      argument is omitted.
     """
-    output = []
+    invocation = cli_list_region_tags_datatypes.ListRegionTagsInvocation(
+        data_json,
+        root_dir,
+        show_detected,
+        show_undetected,
+        show_test_counts,
+        show_filenames
+    )
+    result = cli_list_region_tags.process_list_region_tags(invocation)
+    output_lines = cli_list_region_tags.format_list_region_tags(invocation, result)
 
-    if show_undetected and show_test_counts:
-        output.append(
-            'WARN Undetected/ignored region tags do not have test counts')
-
-    grep_tags, source_tags, ignored_tags, source_methods = (
-        analyze.analyze_json(data_json, root_dir))
-
-    def _get_test_count_str(region_tag):
-        if not show_test_counts:
-            return ''
-
-        test_data_matches = [method for method in source_methods if
-                             region_tag in method['region_tags']]
-
-        total_tests = 0
-        for test_data in test_data_matches:
-            total_tests += len(test_data['test_methods'])
-
-        return f'({total_tests} test(s))'
-
-    if show_detected:
-        output.append('Detected region tags:')
-        for tag in source_tags:
-            output.append(f'  {tag} {_get_test_count_str(tag)}')
-            if show_filenames:
-                source_file = [method['source_path']
-                               for method in source_methods
-                               if tag in method['region_tags']][0]
-                output.append(f'    Source file: {source_file}')
-
-    if show_undetected:
-        output.append('Undetected region tags:')
-        undetected_tags = [tag for tag in grep_tags
-                           if tag not in source_tags]
-        undetected_tags = [tag for tag in undetected_tags
-                           if tag not in ignored_tags]
-        for tag in undetected_tags:
-            output.append(f'  {tag}')
-
-    if ignored_tags:
-        output.append('Ignored region tags')
-        for tag in ignored_tags:
-            output.append(f'  {tag}')
-
-    _write_output(output, output_file)
+    _write_output(output_lines, output_file)
 
 
 def list_source_files(
