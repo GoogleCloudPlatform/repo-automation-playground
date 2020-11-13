@@ -14,10 +14,15 @@
 
 import os
 import xml.etree.ElementTree as etree
-from typing import Any, Dict, Tuple, List, Optional
+from typing import List, Optional
 
 from ast_parser.core import analyze, cli_yaml
-from ast_parser.core import cli_list_region_tags, cli_list_region_tags_datatypes
+from ast_parser.core import cli_list_region_tags
+from ast_parser.core import cli_list_region_tags_datatypes
+from ast_parser.core import cli_list_source_files
+from ast_parser.core import cli_list_source_files_datatypes
+from ast_parser.core.cli_list_source_files_datatypes \
+     import ShowTestedFilesOption
 
 
 def _write_output(output: List[str], output_file: str) -> None:
@@ -79,7 +84,8 @@ def list_region_tags(
         show_filenames
     )
     result = cli_list_region_tags.process_list_region_tags(invocation)
-    output_lines = cli_list_region_tags.format_list_region_tags(invocation, result)
+    output_lines = (
+        cli_list_region_tags.format_list_region_tags(invocation, result))
 
     _write_output(output_lines, output_file)
 
@@ -87,7 +93,7 @@ def list_region_tags(
 def list_source_files(
     data_json: str,
     root_dir: str,
-    show_tested_files: bool,
+    show_tested_files: str,
     output_file: str = None
 ) -> None:
     """Lists snippet source file paths in a directory.
@@ -107,30 +113,24 @@ def list_source_files(
                      results to. Results will be written to stdout if this
                      argument is omitted.
     """
-    grep_tags, source_tags, ignored_tags, source_methods = (
-        analyze.analyze_json(data_json, root_dir))
-
-    # Ignore methods without region tags
-    source_methods = [method for method in source_methods
-                      if method['region_tags']]
-
-    tested_files = set(method['source_path'] for method in source_methods
-                       if method['test_methods'])
-    untested_files = set(method['source_path'] for method in source_methods
-                         if not method['test_methods'])
-
-    files = set(method['source_path'] for method in source_methods)
-
+    tested_files_filter = ShowTestedFilesOption.UNSPECIFIED
     if show_tested_files == 'all':
-        files = [file for file in tested_files if file not in untested_files]
-
+        tested_files_filter = ShowTestedFilesOption.ALL_TESTED
     if show_tested_files == 'some':
-        files = tested_files
-
+        tested_files_filter = ShowTestedFilesOption.ANY_TESTED
     if show_tested_files == 'none':
-        files = [file for file in untested_files if file not in tested_files]
+        tested_files_filter = ShowTestedFilesOption.NOT_TESTED
 
-    _write_output(files, output_file)
+    invocation = cli_list_source_files_datatypes.ListSourceFilesInvocation(
+        data_json,
+        root_dir,
+        tested_files_filter
+    )
+    result = cli_list_source_files.process_list_source_files(invocation)
+    output_lines = (
+        cli_list_source_files.format_list_source_files(invocation, result))
+
+    _write_output(output_lines, output_file)
 
 
 def inject_snippet_mapping(
