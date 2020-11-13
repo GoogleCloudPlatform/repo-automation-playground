@@ -25,7 +25,7 @@ from ast_parser.core.cli_list_source_files_datatypes \
      import ShowTestedFilesOption
 
 
-def _write_output(output: List[str], output_file: str) -> None:
+def _write_output(output: List[str], output_file: Optional[str]) -> None:
     """Helper function that writes output to stdout or a file
 
     This function outputs data from AST parser CLI commands to a given
@@ -71,8 +71,8 @@ def list_region_tags(
                           AST-parser-detected region tag
         show_filenames: Whether or not to show source filenames for each
                         AST-parser-detected region tag
-        output_file: (Optional) A filepath to write the YAML validation
-                     results to. Results will be written to stdout if this
+        output_file: (Optional) A filepath to write the region tag list to.
+                     Results will be written to stdout if this argument is
                      argument is omitted.
     """
     invocation = cli_list_region_tags_datatypes.ListRegionTagsInvocation(
@@ -109,9 +109,9 @@ def list_source_files(
         root_dir: A path to the target root directory.
         show_tested_files: If specified, this method will only list files that
                            have {all, some, none} of their methods tested.
-        output_file: (Optional) A filepath to write the YAML validation
-                     results to. Results will be written to stdout if this
-                     argument is omitted.
+        output_file: (Optional) A filepath to write the source file list to.
+                     Results will be written to stdout if this argument is
+                     omitted.
     """
     tested_files_filter = ShowTestedFilesOption.UNSPECIFIED
     if show_tested_files == 'all':
@@ -137,7 +137,7 @@ def inject_snippet_mapping(
     data_json: str,
     root_dir: str,
     stdin_lines: List[str],
-    output_file: bool = None
+    output_file: str = None
 ) -> None:
     """Adds snippet mapping to XUnit results
 
@@ -151,9 +151,9 @@ def inject_snippet_mapping(
                    root directory
         root_dir: A path to the target root directory.
         stdin_lines: The lines of an XUnit test result file.
-        output_file: (Optional) A filepath to write the YAML validation
-                     results to. Results will be written to stdout if this
-                     argument is omitted.
+        output_file: (Optional) A filepath to write the modified XUnit test
+                     output to. Modified XUnit output will be written to
+                     stdout if this argument is omitted.
     """
 
     grep_tags, source_tags, ignored_tags, source_methods = (

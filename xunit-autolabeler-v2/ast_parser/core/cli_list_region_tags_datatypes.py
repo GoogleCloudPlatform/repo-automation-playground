@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from recordclass import RecordClass
 
@@ -60,7 +60,7 @@ class ListRegionTagsResult(RecordClass):
     """
 
     # Serialized entries from polyglot_snippet_data.json files.
-    source_methods: List[any]
+    source_methods: List[Any]
 
     # A list of region tags detected by a language-specific AST parser.
     source_tags: List[str]
