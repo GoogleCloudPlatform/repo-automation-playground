@@ -77,8 +77,7 @@ def _process_file_region_tags(
         raise ValueError(
             f'Path {source_file} in file {snippet_data_json}'
             ' not found! '
-            'Did you move polyglot_snippet_data.json from its'
-            ' generated location?'
+            'Try regenerating polyglot_snippet_data.json?'
         )
 
     region_tags, ignored_tag_names = (
