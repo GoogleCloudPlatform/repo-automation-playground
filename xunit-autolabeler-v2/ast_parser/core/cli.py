@@ -178,7 +178,7 @@ def inject_snippet_mapping(
                     existing_tag_str.split(',') if existing_tag_str else [])
 
                 deduped_tag_list = (
-                    list(set(existing_tag_list + method['region_tags'])))
+                    set(existing_tag_list + method['region_tags']))
 
                 elem.set('region_tags', ','.join(deduped_tag_list))
 
