@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
+import dataclasses
 from enum import Enum
 from typing import List
 
@@ -39,7 +39,7 @@ class ShowTestedFilesOption(Enum):
     NOT_TESTED = 4
 
 
-@dataclass
+@dataclasses.dataclass(repr=False)
 class ListSourceFilesInvocation:
     """Struct for storing command-line invocation data for list_source_files()
     calls
@@ -59,7 +59,7 @@ class ListSourceFilesInvocation:
     show_tested_files: ShowTestedFilesOption
 
 
-@dataclass
+@dataclasses.dataclass(repr=False)
 class ListSourceFilesResult:
     """Struct for storing output data for list_source_files() calls
 
