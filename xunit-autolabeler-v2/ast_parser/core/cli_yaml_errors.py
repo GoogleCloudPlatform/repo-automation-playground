@@ -18,10 +18,10 @@ errors are represented as classes to a) make message modification easier
 and b) enable direct isinstance() checks.
 """
 
-from dataclasses import dataclass
+import dataclasses
 
 
-@dataclass
+@dataclasses.dataclass(repr=False)
 class InvalidAttributeViolation:
     attr: str
     yaml_path: str
@@ -37,7 +37,7 @@ class InvalidAttributeViolation:
         )
 
 
-@dataclass
+@dataclasses.dataclass(repr=False)
 class AdditionsKeyNotAListViolation:
     region_tag: str
     yaml_path: str
@@ -49,7 +49,7 @@ class AdditionsKeyNotAListViolation:
         )
 
 
-@dataclass
+@dataclasses.dataclass(repr=False)
 class UnusedRegionTagViolation:
     region_tag: str
     yaml_path: str
@@ -61,7 +61,7 @@ class UnusedRegionTagViolation:
         )
 
 
-@dataclass
+@dataclasses.dataclass(repr=False)
 class MissingTestFileViolation:
     test_path: str
     yaml_path: str
@@ -72,7 +72,7 @@ class MissingTestFileViolation:
         )
 
 
-@dataclass
+@dataclasses.dataclass(repr=False)
 class UnparsedRegionTagViolation:
     region_tag: str
     yaml_path: str
@@ -85,7 +85,7 @@ class UnparsedRegionTagViolation:
         )
 
 
-@dataclass
+@dataclasses.dataclass(repr=False)
 class DetectedTagMarkedUndetectedViolation:
     region_tag: str
     yaml_path: str
@@ -97,7 +97,7 @@ class DetectedTagMarkedUndetectedViolation:
         )
 
 
-@dataclass
+@dataclasses.dataclass(repr=False)
 class RepeatedTagViolation:
     region_tag: str
 
