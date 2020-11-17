@@ -16,7 +16,7 @@ import re
 import unittest
 from os import path
 
-from ast_parser.core import cli
+from ast_parser.core import cli, cli_yaml_errors
 
 import pytest
 
@@ -48,23 +48,27 @@ class YamlEdgeCaseTests(unittest.TestCase):
     def test_requires_parent_tags_to_be_in_grep_region_tags(self):
         data_path = path.join(TEST_DATA_PATH, 'invalid')
 
-        cli.validate_yaml(
-            path.join(data_path, 'polyglot_snippet_data.json'),
-            data_path
-        )
+        json_path = path.join(data_path, 'polyglot_snippet_data.json')
+        yaml_path = path.join(data_path, '.drift-data.yml')
+
+        cli.validate_yaml(json_path, data_path)
+
         out, _ = self.capsys.readouterr()
 
-        assert 'tag not used in source files: nonexistent_test_file' in out
+        error = cli_yaml_errors.UnusedRegionTagViolation(
+            'nonexistent_test_file', yaml_path)
+        assert str(error) in out
 
 
 class RequiredValueClauseTests(unittest.TestCase):
     @pytest.fixture(autouse=True)
     def capsys(self, capsys):
-        invalid_path = path.join(TEST_DATA_PATH, 'invalid')
+        self.invalid_path = path.join(TEST_DATA_PATH, 'invalid')
+        self.yaml_path = path.join(self.invalid_path, '.drift-data.yml')
 
         cli.validate_yaml(
-            path.join(invalid_path, 'polyglot_snippet_data.json'),
-            invalid_path
+            path.join(self.invalid_path, 'polyglot_snippet_data.json'),
+            self.invalid_path
         )
         out, _ = capsys.readouterr()
 
@@ -77,12 +81,15 @@ class RequiredValueClauseTests(unittest.TestCase):
         assert 'invalid/tested used in' not in self.out
 
     def test_tested_tags_cannot_be_parsed(self):
-        assert re.search(
-            'Parsed tag detectable_tag.+ marked untested!', self.out)
+        error = cli_yaml_errors.DetectedTagMarkedUndetectedViolation(
+            'detectable_tag', self.yaml_path)
+
+        assert str(error) in self.out
 
     def test_overwritten_tags_exist_in_source(self):
-        expected = 'tag not used in source files: unparsed_overwritten_tag'
-        assert expected in self.out
+        error = cli_yaml_errors.UnusedRegionTagViolation(
+            'unparsed_overwritten_tag', self.yaml_path)
+        assert str(error) in self.out
 
 
 class ManuallySpecifiedClauseTests(unittest.TestCase):
@@ -91,15 +98,20 @@ class ManuallySpecifiedClauseTests(unittest.TestCase):
         invalid_path = path.join(TEST_DATA_PATH, 'invalid')
         explicit_path = path.join(TEST_DATA_PATH, 'explicit_tests')
 
+        data_path = path.join(invalid_path, 'polyglot_snippet_data.json')
+
+        self.test_path = path.join(invalid_path, 'fake_test.py')
+        self.yaml_path = path.join(invalid_path, '.drift-data.yml')
+
         cli.validate_yaml(
-            path.join(explicit_path, 'polyglot_snippet_data.json'),
+            data_path,
             explicit_path,
         )
         out, _ = capsys.readouterr()
         self.explicit_out = out
 
         cli.validate_yaml(
-            path.join(invalid_path, 'polyglot_snippet_data.json'),
+            data_path,
             invalid_path
         )
         out, _ = capsys.readouterr()
@@ -107,15 +119,16 @@ class ManuallySpecifiedClauseTests(unittest.TestCase):
         self.invalid_out = out
 
     def test_requires_test_tag_file_to_exist(self):
-        assert re.search(
-            'Test file .+fake_test.py used in .+drift-data.yml not found!',
-            self.invalid_out)
+        error = cli_yaml_errors.MissingTestFileViolation(
+            self.test_path, self.yaml_path)
+        assert str(error) in self.invalid_out
 
 
 class RelationshipClauseTests(unittest.TestCase):
     @pytest.fixture(autouse=True)
     def capsys(self, capsys):
         invalid_path = path.join(TEST_DATA_PATH, 'invalid')
+        self.yaml_path = path.join(invalid_path, '.drift-data.yml')
 
         cli.validate_yaml(
             path.join(invalid_path, 'polyglot_snippet_data.json'),
@@ -126,4 +139,7 @@ class RelationshipClauseTests(unittest.TestCase):
         self.out = out
 
     def test_requires_additions_tag_to_be_an_array(self):
-        assert re.search('Additions key .+ is not a list', self.out)
+        error = cli_yaml_errors.AdditionsKeyNotAListViolation(
+            'additions_tag', self.yaml_path)
+
+        assert str(error) in self.out

@@ -15,7 +15,7 @@
 import os
 from typing import Any, Dict, List, Optional, Tuple
 
-from ast_parser.core import constants
+from ast_parser.core import constants, cli_yaml_errors
 from ast_parser.lib import file_utils
 
 import yaml
@@ -46,10 +46,8 @@ def _attr_required_values_get_errors(
     actual = yaml_entry[attr]
     expected = constants.REQUIRED_KEY_VALUES[attr]
     if actual != expected:
-        return (
-            f'Invalid {attr} value in file {yaml_path} '
-            f'for tag {tag}: {actual}, expected {expected} '
-            ' (or omission)')
+        return cli_yaml_errors.InvalidAttributeViolation(
+            attr, yaml_path, tag, actual, expected)
 
     return None
 
@@ -57,7 +55,7 @@ def _attr_required_values_get_errors(
 def _attr_additions_get_errors(
     yaml_path: str,
     yaml_entry: Dict[str, Any],
-    tag: str,
+    region_tag: str,
     attr: str,
     grep_tags: List[str]
 ) -> Optional[str]:
@@ -82,13 +80,12 @@ def _attr_additions_get_errors(
 
     # Additions field must be an array
     if not isinstance(yaml_entry[attr], list):
-        return (f'Additions key for {tag} in '
-                f'{yaml_path} is not a list!')
+        return cli_yaml_errors.AdditionsKeyNotAListViolation(
+            region_tag, yaml_path)
 
     # Added tags must be correctly parsed from the codebase
     if any(t not in grep_tags for t in yaml_entry[attr]):
-        return (f'Yaml file {yaml_path} contains region '
-                f'tag not used in source files: {tag}')
+        return cli_yaml_errors.UnusedRegionTagViolation(region_tag, yaml_path)
 
     return None
 
@@ -128,8 +125,9 @@ def _attr_manually_specified_tests_get_errors(
             test_path = os.path.join(yaml_dirname, test_path)
 
         if not os.path.exists(test_path):
-            errors.append(f'Test file {test_path} used '
-                          f'in {yaml_path} not found!')
+            errors.append(
+                cli_yaml_errors.MissingTestFileViolation(
+                    test_path, yaml_path))
 
     return errors
 
@@ -249,25 +247,22 @@ def _get_region_tag_errors(
                 # source code (via parsing and/or grep results)
                 if tag not in grep_tags:
                     output.append(
-                        f'Yaml file {yaml_path} contains region '
-                        f'tag not used in source files: {tag}')
+                        cli_yaml_errors.UnusedRegionTagViolation(
+                            tag, yaml_path))
                     is_valid = False
                 elif tag_should_be_in_source and tag not in source_tags:
-                    output.append(
-                        f'Yaml file {yaml_path} contains '
-                        f'unparsed region tag: {tag}')
-                    output.append(
-                        '  Remove it, or label it with "tested: false".')
+                    output.append(cli_yaml_errors.UnparsedRegionTagViolation(
+                        tag, yaml_path))
                     is_valid = False
                 elif not tag_should_be_in_source and tag in source_tags:
-                    output.append(f'Parsed tag {tag} in file'
-                                  f'{yaml_path} marked untested!')
+                    output.append(
+                        cli_yaml_errors.DetectedTagMarkedUndetectedViolation(
+                            tag, yaml_path))
                     is_valid = False
 
                 # Verify region tags are present at most once
                 if tag in seen_region_tags:
-                    output.append(f'Region tag {tag} is used multiple '
-                                  'times in .drift-data.yml files!')
+                    output.append(cli_yaml_errors.RepeatedTagViolation(tag))
                     is_valid = False
                 else:
                     seen_region_tags.add(tag)
@@ -300,11 +295,13 @@ def validate_yaml_syntax(
     """
     yaml_paths = file_utils.get_drift_yaml_files(root_dir)
 
-    (tags_are_valid, tags_output) = (
+    (tags_are_valid, tags_violations) = (
         _get_region_tag_errors(yaml_paths, grep_tags, source_tags))
-    (attrs_are_valid, attrs_output) = _get_attr_errors(yaml_paths, grep_tags)
+    (attrs_are_valid, attrs_violations) = _get_attr_errors(yaml_paths, grep_tags)
 
-    output = tags_output + attrs_output
+    violations = tags_violations + attrs_violations
+    output = [str(violation) for violation in violations]
+
     is_valid = tags_are_valid and attrs_are_valid
 
     return (is_valid, output)
