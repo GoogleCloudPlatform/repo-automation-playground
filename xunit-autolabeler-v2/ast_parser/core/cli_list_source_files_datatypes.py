@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
 from enum import Enum
 from typing import List
-
-from recordclass import RecordClass
 
 
 """
@@ -40,7 +39,8 @@ class ShowTestedFilesOption(Enum):
     NOT_TESTED = 4
 
 
-class ListSourceFilesInvocation(RecordClass):
+@dataclass
+class ListSourceFilesInvocation:
     """Struct for storing command-line invocation data for list_source_files()
     calls
 
@@ -59,7 +59,8 @@ class ListSourceFilesInvocation(RecordClass):
     show_tested_files: ShowTestedFilesOption
 
 
-class ListSourceFilesResult(RecordClass):
+@dataclass
+class ListSourceFilesResult:
     """Struct for storing output data for list_source_files() calls
 
     This object stores the processed results of a list_source_files() call.

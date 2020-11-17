@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
 from typing import Any, Dict, List
-
-from recordclass import RecordClass
 
 
 """
@@ -25,7 +24,8 @@ HTTP/gRPC-based ones.
 """
 
 
-class ListRegionTagsInvocation(RecordClass):
+@dataclass
+class ListRegionTagsInvocation:
     """Struct for storing command-line invocation data for list_region_tags()
     calls
 
@@ -53,7 +53,8 @@ class ListRegionTagsInvocation(RecordClass):
     show_filenames: bool
 
 
-class ListRegionTagsResult(RecordClass):
+@dataclass
+class ListRegionTagsResult:
     """Struct for storing output data for list_region_tags() calls
 
     This object stores the processed results of a list_region_tags() call.
