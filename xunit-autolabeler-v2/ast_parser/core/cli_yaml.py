@@ -15,7 +15,7 @@
 import os
 from typing import Any, Dict, List, Optional, Tuple
 
-from ast_parser.core import constants, cli_yaml_errors
+from ast_parser.core import cli_yaml_errors, constants
 from ast_parser.lib import file_utils
 
 import yaml
@@ -202,7 +202,7 @@ def _get_attr_errors(
                     errors += manual_errors
 
     is_valid = not errors
-    return (is_valid, errors)
+    return is_valid, errors
 
 
 def _get_region_tag_errors(
@@ -267,7 +267,7 @@ def _get_region_tag_errors(
                 else:
                     seen_region_tags.add(tag)
 
-    return (is_valid, output)
+    return is_valid, output
 
 
 def validate_yaml_syntax(
@@ -295,13 +295,13 @@ def validate_yaml_syntax(
     """
     yaml_paths = file_utils.get_drift_yaml_files(root_dir)
 
-    (tags_are_valid, tags_violations) = (
+    tags_are_valid, tags_violations = (
         _get_region_tag_errors(yaml_paths, grep_tags, source_tags))
-    (attrs_are_valid, attrs_violations) = _get_attr_errors(yaml_paths, grep_tags)
+    attrs_are_valid, attrs_violations = _get_attr_errors(yaml_paths, grep_tags)
 
     violations = tags_violations + attrs_violations
     output = [str(violation) for violation in violations]
 
     is_valid = tags_are_valid and attrs_are_valid
 
-    return (is_valid, output)
+    return is_valid, output

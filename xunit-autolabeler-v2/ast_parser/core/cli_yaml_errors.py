@@ -18,10 +18,11 @@ errors are represented as classes to a) make message modification easier
 and b) enable direct isinstance() checks.
 """
 
-from typing import NamedTuple
+from dataclasses import dataclass
 
 
-class InvalidAttributeViolation(NamedTuple):
+@dataclass
+class InvalidAttributeViolation:
     attr: str
     yaml_path: str
     region_tag: str
@@ -36,7 +37,8 @@ class InvalidAttributeViolation(NamedTuple):
         )
 
 
-class AdditionsKeyNotAListViolation(NamedTuple):
+@dataclass
+class AdditionsKeyNotAListViolation:
     region_tag: str
     yaml_path: str
 
@@ -47,7 +49,8 @@ class AdditionsKeyNotAListViolation(NamedTuple):
         )
 
 
-class UnusedRegionTagViolation(NamedTuple):
+@dataclass
+class UnusedRegionTagViolation:
     region_tag: str
     yaml_path: str
 
@@ -58,7 +61,8 @@ class UnusedRegionTagViolation(NamedTuple):
         )
 
 
-class MissingTestFileViolation(NamedTuple):
+@dataclass
+class MissingTestFileViolation:
     test_path: str
     yaml_path: str
 
@@ -68,7 +72,8 @@ class MissingTestFileViolation(NamedTuple):
         )
 
 
-class UnparsedRegionTagViolation(NamedTuple):
+@dataclass
+class UnparsedRegionTagViolation:
     region_tag: str
     yaml_path: str
 
@@ -80,7 +85,8 @@ class UnparsedRegionTagViolation(NamedTuple):
         )
 
 
-class DetectedTagMarkedUndetectedViolation(NamedTuple):
+@dataclass
+class DetectedTagMarkedUndetectedViolation:
     region_tag: str
     yaml_path: str
 
@@ -91,7 +97,8 @@ class DetectedTagMarkedUndetectedViolation(NamedTuple):
         )
 
 
-class RepeatedTagViolation(NamedTuple):
+@dataclass
+class RepeatedTagViolation:
     region_tag: str
 
     def __str__(self):
