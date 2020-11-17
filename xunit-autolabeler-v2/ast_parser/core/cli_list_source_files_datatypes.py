@@ -75,5 +75,5 @@ class ListSourceFilesResult(RecordClass):
     # (and *possibly* all) snippets are tested.
     any_tested_files: List[str]
 
-    # A lit of filepaths for which *no* snippets are tested.
+    # A list of filepaths for which *no* snippets are tested.
     not_tested_files: List[str]
