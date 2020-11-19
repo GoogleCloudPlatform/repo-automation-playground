@@ -35,7 +35,10 @@ class GetMethodsTest(unittest.TestCase):
             _TEST_DIR,
             'edge_cases/polyglot_snippet_data.json'
         )
-        self.method = analyze._get_methods(json_path)[0]
+        methods, test_method_map = analyze._get_data(json_path)
+        analyze._store_tests_on_methods(methods, test_method_map)
+
+        self.method = methods[0]
 
     def test_retrieves_test_methods(self):
         assert len(self.method.test_methods) == 1
@@ -43,11 +46,11 @@ class GetMethodsTest(unittest.TestCase):
     def test_source_paths_are_absolute(self):
         assert os.path.isabs(self.method.source_path)
 
-    def test_test_paths_are_relative(self):
+    def test_test_paths_are_absolute(self):
         test_data = self.method.test_methods[0]
         test_path = test_data[0]
 
-        assert not os.path.isabs(test_path)
+        assert os.path.isabs(test_path)
 
 
 class ProcessRegionTagsTest(unittest.TestCase):
@@ -78,7 +81,7 @@ class ProcessRegionTagsTest(unittest.TestCase):
             _TEST_DIR,
             'edge_cases/polyglot_snippet_data.json'
         )
-        tuple_methods = analyze._get_methods(json_path)
+        tuple_methods, _ = analyze._get_data(json_path)
 
         _, ignored_tags = analyze._process_file_region_tags(
             os.path.join(_TEST_DIR, 'flask/flask_main.py'),
@@ -117,3 +120,79 @@ class DedupeSourceMethodsTest(unittest.TestCase):
         ]
 
         assert len(analyze._dedupe_source_methods(methods)) == 1
+
+
+class StoreTestsOnMethodsTests(unittest.TestCase):
+    @pytest.fixture(autouse=True)
+    def _direct_invocation_map(self):
+        root_path = os.path.join(_TEST_DIR, 'edge_cases')
+        json_path = os.path.join(
+            _TEST_DIR,
+            'edge_cases/polyglot_snippet_data.json'
+        )
+
+        self.direct_invocation_test_path = (
+            os.path.join(root_path, 'edge_cases_test.py'))
+
+        self.direct_invocation_methods, test_map = (
+            analyze._get_data(json_path))
+
+        analyze._store_tests_on_methods(
+            self.direct_invocation_methods, test_map)
+
+    @pytest.fixture(autouse=True)
+    def _webapp2_map(self):
+        root_path = os.path.join(_TEST_DIR, 'webapp2')
+        json_path = os.path.join(
+            _TEST_DIR,
+            'webapp2/polyglot_snippet_data.json'
+        )
+
+        self.webapp2_test_path = os.path.join(root_path, 'webapp2_test.py')
+        self.webapp2_methods, test_map = analyze._get_data(json_path)
+
+        analyze._store_tests_on_methods(self.webapp2_methods, test_map)
+
+    @pytest.fixture(autouse=True)
+    def _flask_map(self):
+        root_path = os.path.join(_TEST_DIR, 'flask')
+        json_path = os.path.join(
+            _TEST_DIR,
+            'flask/polyglot_snippet_data.json'
+        )
+
+        self.flask_test_path = os.path.join(root_path, 'flask_test.py')
+        self.flask_methods, test_map = analyze._get_data(json_path)
+
+        analyze._store_tests_on_methods(self.flask_methods, test_map)
+
+    def test_handles_direct_invocations(self):
+        test_data = self.direct_invocation_methods[0].test_methods
+
+        assert len(test_data) == 1
+        assert test_data[0] == (
+            self.direct_invocation_test_path,
+            'test_not_main'
+        )
+
+    def test_handles_webapp2_routes(self):
+        test_data = self.webapp2_methods[0].test_methods
+
+        assert len(test_data) == 2
+        assert test_data[0] == (
+            self.webapp2_test_path,
+            'test_get'
+        )
+        assert test_data[1] == (
+            self.webapp2_test_path,
+            'test_post_and_get'
+        )
+
+    def test_handles_flask_routes(self):
+        test_data = self.flask_methods[0].test_methods
+
+        assert len(test_data) == 1
+        assert test_data[0] == (
+            self.flask_test_path,
+            'test_index'
+        )

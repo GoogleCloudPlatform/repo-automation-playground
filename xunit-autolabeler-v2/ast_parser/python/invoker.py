@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import dataclasses
 import os
 from typing import Any, Dict, List
 
-from ast_parser.lib import file_utils
+from ast_parser.lib import constants as lib_constants, file_utils
 
 from . import constants, source_parser, test_parser
 
@@ -29,7 +31,7 @@ def _parse_test(test_path: str, source_methods: List[Any]) -> None:
     test_methods = test_parser.get_test_methods(test_path)
     test_method_map = test_parser.get_test_key_to_snippet_map(test_methods)
 
-    test_parser.store_tests_on_methods(source_methods, test_method_map)
+    return test_method_map
 
 
 def get_json_for_dir(root_dir: str) -> List[Dict]:
@@ -45,12 +47,28 @@ def get_json_for_dir(root_dir: str) -> List[Dict]:
     test_files = [file for file in python_files
                   if constants.TEST_FILE_MARKER in file]
 
+    test_method_map = dict()
     for file in test_files:
-        _parse_test(file, source_methods)
+        tests = _parse_test(file, source_methods)
+        for test_keys, test_value in tests.items():
+            key_str = (
+                test_keys[0] + lib_constants.KEY_SEPARATOR + test_keys[1])
+
+            if key_str not in test_method_map:
+                test_method_map[key_str] = []
+
+            test_method_map[key_str] += test_value
 
     for method in source_methods:
-        new_source_path = os.path.relpath(
-            method.drift.source_path, root_dir)
-        method.drift._replace(source_path=new_source_path)
+        new_source_path = os.path.abspath(
+            method.drift.source_path)
+        method.drift.source_path = new_source_path
 
-    return [method.drift._asdict() for method in source_methods]
+    output = {
+        'snippets': [
+            dataclasses.asdict(method.drift) for method in source_methods
+        ],
+        'test_method_map': test_method_map
+    }
+
+    return output

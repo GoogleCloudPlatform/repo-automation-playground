@@ -13,10 +13,12 @@
 # limitations under the License.
 
 
-from typing import List, NamedTuple, Optional
+import dataclasses
+from typing import List, Optional
 
 
-class DriftData(NamedTuple):
+@dataclasses.dataclass
+class DriftData:
     """Struct for storing snippet metadata
 
     This object stores snippet data extracted from
@@ -33,10 +35,9 @@ class DriftData(NamedTuple):
     start_line: int
     method_name: Optional[str] = None
     url: Optional[str] = None
-    http_methods: List[str] = []
+    http_methods: List[str] = None
 
     # Properties set by source_parser.py
     source_path: Optional[str] = None
     end_line: Optional[int] = None
-    children: List[str] = []
-    test_methods: List[str] = []
+    children: List[str] = None

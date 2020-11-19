@@ -341,6 +341,8 @@ class ListSourceFilesTest(unittest.TestCase):
 
         tests_all_methods = 'flask/flask_main.py'
         tests_some_methods = 'http/http_main.py'
+
+        print(out)
         assert tests_all_methods in out
         assert tests_some_methods not in out
 

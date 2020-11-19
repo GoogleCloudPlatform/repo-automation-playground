@@ -16,6 +16,10 @@ import os
 import re
 
 
+# Character used to separate different parts of a key in test-method maps
+KEY_SEPARATOR = '@'
+
+
 IGNORED_METHOD_NAMES = (
     'run_command',
     'parse_command_line_args',

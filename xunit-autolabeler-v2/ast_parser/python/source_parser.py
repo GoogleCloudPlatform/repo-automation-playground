@@ -136,11 +136,9 @@ def get_top_level_methods(source_path: str) -> List[Any]:
             methods += direct_invocation.parse(nodes, module_name)
 
             for method in methods:
-                method.drift = method.drift._replace(
-                    source_path=os.path.abspath(source_path),
-                    children=_get_method_children(method),
-                    end_line=_get_ending_line(method)
-                )
+                method.drift.source_path = os.path.abspath(source_path)
+                method.drift.children = _get_method_children(method)
+                method.drift.end_line = _get_ending_line(method)
 
             return methods
     except IOError as err:
