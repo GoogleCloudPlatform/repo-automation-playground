@@ -64,11 +64,9 @@ def get_json_for_dir(root_dir: str) -> List[Dict]:
             method.drift.source_path)
         method.drift.source_path = new_source_path
 
-    output = {
+    return {
         'snippets': [
             dataclasses.asdict(method.drift) for method in source_methods
         ],
         'test_method_map': test_method_map
     }
-
-    return output

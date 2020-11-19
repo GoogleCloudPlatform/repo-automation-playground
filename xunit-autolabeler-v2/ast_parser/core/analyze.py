@@ -15,7 +15,7 @@
 import json
 import os
 from os import path
-from typing import Any, Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 from ast_parser.lib import constants as lib_constants
 
@@ -172,14 +172,21 @@ def _store_tests_on_methods(
 
         new_test_methods = list(method.test_methods)  # deep copy
         for key in keys:
-            if key in test_to_method_key_map:
-                if test_to_method_key_map[key]:
-                    matching_tests = [
-                        test for test in test_to_method_key_map[key]
-                        if source_root in test[0]
-                    ]
+            if key not in test_to_method_key_map:
+                # Nonexistent key
+                continue
 
-                    new_test_methods += matching_tests
+            map_entry = test_to_method_key_map[key]
+            if not map_entry:
+                # No tests specified (empty array)
+                continue
+
+            matching_tests = [
+                (file, path) for (file, path) in map_entry
+                if source_root in file
+            ]
+
+            new_test_methods.extend(matching_tests)
 
         method.test_methods = new_test_methods
 
