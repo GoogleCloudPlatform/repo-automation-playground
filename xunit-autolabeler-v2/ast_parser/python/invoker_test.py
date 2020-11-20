@@ -17,6 +17,10 @@ import os
 from . import invoker
 
 
+PARSER_DATA_PATH = os.path.join(
+    os.path.dirname(__file__),
+    'test_data/parser'
+)
 TEST_DATA_PATH = os.path.join(
     os.path.dirname(__file__),
     'test_data/parser/edge_cases'
@@ -34,15 +38,23 @@ def test_recognizes_source_files():
 
 def test_recognizes_test_files():
     methods = invoker._parse_source(source_path)
-
     invoker._parse_test(test_path, methods)
 
     assert len(methods) == 1
-    assert len(methods[0].drift.test_methods) == 1
+
+
+def test_merges_duplicate_test_keys():
+    test_map = invoker.get_json_for_dir(PARSER_DATA_PATH)['test_method_map']
+
+    test_entries = test_map['get@/']
+    test_files = [entry[0] for entry in test_entries]
+
+    assert '/flask_test.py' in str(test_files)
+    assert '/webapp2_test.py' in str(test_files)
 
 
 def test_get_json_for_dir():
-    repo_obj = invoker.get_json_for_dir(TEST_DATA_PATH)
+    repo_obj = invoker.get_json_for_dir(TEST_DATA_PATH)['snippets']
     assert len(repo_obj) == 1
 
     first_repo_obj = repo_obj[0]
@@ -53,4 +65,3 @@ def test_get_json_for_dir():
     assert 'start_line' in first_repo_obj
     assert 'end_line' in first_repo_obj
     assert 'method_name' in first_repo_obj
-    assert 'test_methods' in first_repo_obj

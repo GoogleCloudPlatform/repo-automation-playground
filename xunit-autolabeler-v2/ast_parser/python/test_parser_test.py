@@ -16,9 +16,7 @@
 import os
 import unittest
 
-import pytest
-
-from . import source_parser, test_parser
+from . import test_parser
 
 
 TEST_DATA_DIR = os.path.join(
@@ -108,96 +106,3 @@ class GetTestToMethodMapSmokeTests(unittest.TestCase):
         entry = test_map[key]
         assert len(entry) == 1
         assert entry[0] == (path, 'test_not_main')
-
-
-class StoreTestsOnMethodsTests(unittest.TestCase):
-    @pytest.fixture(autouse=True)
-    def _direct_invocation_map(self):
-        root_path = os.path.join(
-            TEST_DATA_DIR,
-            'parser/edge_cases'
-        )
-
-        source_path = os.path.join(root_path, 'edge_cases.py')
-        test_path = os.path.join(root_path, 'edge_cases_test.py')
-
-        test_map = test_parser.get_test_key_to_snippet_map(
-            test_parser.get_test_methods(test_path)
-        )
-
-        self.direct_invocation_test_path = test_path
-        self.direct_invocation_methods = \
-            source_parser.get_top_level_methods(source_path)
-
-        test_parser.store_tests_on_methods(
-            self.direct_invocation_methods, test_map)
-
-    @pytest.fixture(autouse=True)
-    def _webapp2_map(self):
-        root_path = os.path.join(
-            TEST_DATA_DIR,
-            'parser/webapp2'
-        )
-
-        source_path = os.path.join(root_path, 'webapp2_main.py')
-        test_path = os.path.join(root_path, 'webapp2_test.py')
-
-        test_map = test_parser.get_test_key_to_snippet_map(
-            test_parser.get_test_methods(test_path)
-        )
-
-        self.webapp2_test_path = test_path
-        self.webapp2_methods = \
-            source_parser.get_top_level_methods(source_path)
-
-        test_parser.store_tests_on_methods(self.webapp2_methods, test_map)
-
-    @pytest.fixture(autouse=True)
-    def _flask_map(self):
-        root_path = os.path.join(
-            TEST_DATA_DIR,
-            'parser/flask'
-        )
-
-        source_path = os.path.join(root_path, 'flask_main.py')
-        test_path = os.path.join(root_path, 'flask_test.py')
-
-        test_map = test_parser.get_test_key_to_snippet_map(
-            test_parser.get_test_methods(test_path)
-        )
-
-        self.flask_test_path = test_path
-        self.flask_methods = source_parser.get_top_level_methods(source_path)
-
-        test_parser.store_tests_on_methods(self.flask_methods, test_map)
-
-    def test_handles_direct_invocations(self):
-        test_data = self.direct_invocation_methods[0].drift.test_methods
-
-        assert len(test_data) == 1
-        assert test_data[0] == (
-            self.direct_invocation_test_path,
-            'test_not_main'
-        )
-
-    def test_handles_webapp2_routes(self):
-        test_data = self.webapp2_methods[0].drift.test_methods
-
-        assert len(test_data) == 2
-        assert test_data[0] == (
-            self.webapp2_test_path,
-            'test_get'
-        )
-        assert test_data[1] == (
-            self.webapp2_test_path,
-            'test_post_and_get'
-        )
-
-    def test_handles_flask_routes(self):
-        test_data = self.flask_methods[0].drift.test_methods
-
-        assert len(test_data) == 1
-        assert test_data[0] == (
-            self.flask_test_path,
-            'test_index'
-        )

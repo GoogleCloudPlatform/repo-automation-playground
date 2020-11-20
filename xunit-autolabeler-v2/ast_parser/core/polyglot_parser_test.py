@@ -38,7 +38,7 @@ def _create_fixtures(test_folder, add_main=False):
     repo_json = path.join(test_folder_path, 'polyglot_snippet_data.json')
     source_path = path.join(test_folder_path, test_file)
 
-    source_methods_json = _parse_json(repo_json)
+    source_methods_json = _parse_json(repo_json)['snippets']
     source_methods = [pdd.PolyglotDriftData(**json_dict)
                       for json_dict in source_methods_json]
 

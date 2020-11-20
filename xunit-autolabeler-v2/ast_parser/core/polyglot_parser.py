@@ -62,13 +62,11 @@ def add_children_drift_data(
                 method.region_tags.extend(child_method.region_tags)
                 method.test_methods.extend(child_method.test_methods)
 
-        return method._replace(
-            region_tags=list(set(method.region_tags)),
-            test_methods=list(set(method.test_methods))
-        )
+        method.region_tags = list(set(method.region_tags))
+        method.test_methods = list(set(method.test_methods))
 
-    for idx, method in enumerate(source_methods):
-        source_methods[idx] = _recursor(method)
+    for method in source_methods:
+        _recursor(method)
 
 
 def get_region_tag_regions(

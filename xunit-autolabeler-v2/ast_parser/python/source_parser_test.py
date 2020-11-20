@@ -111,12 +111,6 @@ class GetTopLevelMethodsTest(unittest.TestCase):
         )
         self.methods = source_parser.get_top_level_methods(path)
 
-    def test_initializes_values(self):
-        first_method = self.methods[0]
-
-        assert hasattr(first_method, 'drift')
-        assert hasattr(first_method.drift, 'test_methods')
-
     def test_uses_absolute_source_path(self):
         first_method = self.methods[0]
 
