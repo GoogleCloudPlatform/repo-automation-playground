@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.8
+# ^ Use python 3.8 since Pip isn't configured for newer versions (3.9+)
 
 # Copyright 2020 Google LLC.
 #
