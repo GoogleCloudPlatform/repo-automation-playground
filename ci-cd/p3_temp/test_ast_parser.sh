@@ -29,7 +29,7 @@ pip install --user -r requirements-dev.txt
 ./python_bootstrap.py core/test_data/cli/dotfile_test/.dotfile
 ./python_bootstrap.py core/test_data/parser
 ./python_bootstrap.py core/test_data/parser/edge_cases
-./python_bootstrap.py core/test_data/parser/edge_cases
+./python_bootstrap.py core/test_data/parser/exclude_tags
 ./python_bootstrap.py core/test_data/parser/flask
 ./python_bootstrap.py core/test_data/parser/http
 ./python_bootstrap.py core/test_data/parser/nested_tags
