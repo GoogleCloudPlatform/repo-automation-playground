@@ -104,3 +104,9 @@ class PolyglotParserTests(unittest.TestCase):
 
         method = source_methods[-1]
         self.assertEqual(method.region_tags, ['sign_handler'])
+
+    def test_ignores_exclude_tags(self):
+        source_methods = _create_fixtures('exclude_tags', True)
+
+        # make sure the file was parsed properly
+        assert len(source_methods) == 1
