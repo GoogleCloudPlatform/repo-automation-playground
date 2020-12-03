@@ -109,4 +109,4 @@ class PolyglotParserTests(unittest.TestCase):
         source_methods = _create_fixtures('exclude_tags', True)
 
         # make sure the file was parsed properly
-        assert len(source_methods) == 1
+        assert len(source_methods) == 2

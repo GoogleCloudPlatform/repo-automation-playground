@@ -14,11 +14,12 @@
 
 
 # [START main_method]
-def main():
-    return 'main method'
+def included():
+    return 'included method one'
 # [START_EXCLUDE]
 
+
+def also_included():
+    return 'also included method'
 # [END_EXCLUDE]
-def not_main():
-    return 'not main'
 # [END main_method]
