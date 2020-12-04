@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-# [START main_method]
+# [START included]
 def included():
     return 'included method one'
 # [START_EXCLUDE]
@@ -22,4 +22,4 @@ def included():
 def also_included():
     return 'also included method'
 # [END_EXCLUDE]
-# [END main_method]
+# [END included]
