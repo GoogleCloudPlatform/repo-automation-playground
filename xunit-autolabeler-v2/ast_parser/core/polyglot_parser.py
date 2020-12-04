@@ -98,11 +98,19 @@ def get_region_tag_regions(
         line_text: str = line[1]
 
         tag = constants.REGION_TAG_ONLY_REGEX.search(line_text).group(0)
+
         return (line_num + 1, tag)  # +1 = convert to 0-indexed
 
     with open(source_path, 'r') as file:
+        file_lines = file.readlines()
+
+        # Remove _EXCLUDE tags
+        file_lines = [line for line in file_lines
+                      if '[START_EXCLUDE' not in line
+                      and '[END_EXCLUDE' not in line]
+
         content_lines = [(idx, line_text) for idx, line_text in
-                         enumerate(file.readlines())]
+                         enumerate(file_lines)]
 
         start_tag_lines = [line_tuple for line_tuple in content_lines
                            if ' [START' in line_tuple[1]]

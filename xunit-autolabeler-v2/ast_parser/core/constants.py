@@ -17,7 +17,7 @@ import re
 from frozendict import frozendict
 
 
-REGION_TAG_ONLY_REGEX = re.compile(r'(?<=\s)+\w+(?=])')
+REGION_TAG_ONLY_REGEX = re.compile(r'(?<=\s)+(\w|-)+(?=])')
 
 IGNORED_METHOD_NAMES = (
     'run_command',

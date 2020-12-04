@@ -131,6 +131,109 @@ class GetTopLevelMethodsTest(unittest.TestCase):
         assert drift.end_line > drift.start_line
 
 
+class GetEndingLineNumberTest(unittest.TestCase):
+    def _clear_fake_elem(self, lineno):
+        fake_elem = MagicMock(autospec=False)
+
+        del fake_elem.args
+        del fake_elem.body
+        del fake_elem.elts
+        del fake_elem.exc
+        del fake_elem.expr
+        del fake_elem.generators
+        del fake_elem.iter
+        del fake_elem.value
+        del fake_elem.values
+
+        fake_elem.lineno = lineno
+
+        return fake_elem
+
+    def test_handles_body_as_list(self):
+        elem = self._clear_fake_elem(1)
+        elem.body = [self._clear_fake_elem(2), self._clear_fake_elem(3)]
+
+        assert source_parser._get_ending_line(elem) == 3
+
+    def test_handles_empty_body_list(self):
+        elem = self._clear_fake_elem(2)
+        elem.body = []
+
+        assert source_parser._get_ending_line(elem) == 2
+
+    def test_handles_body_as_element(self):
+        elem = self._clear_fake_elem(1)
+        elem.body = self._clear_fake_elem(2)
+
+        assert source_parser._get_ending_line(elem) == 2
+
+    def test_handles_exc(self):
+        elem = self._clear_fake_elem(1)
+        elem.exc = self._clear_fake_elem(2)
+
+        assert source_parser._get_ending_line(elem) == 2
+
+    def test_handles_args(self):
+        elem = self._clear_fake_elem(1)
+        elem.args = [self._clear_fake_elem(2), self._clear_fake_elem(3)]
+
+        assert source_parser._get_ending_line(elem) == 3
+
+    def test_handles_empty_args(self):
+        elem = self._clear_fake_elem(1)
+        elem.args = []
+
+        assert source_parser._get_ending_line(elem) == 1
+
+    def test_handles_elts(self):
+        elem = self._clear_fake_elem(1)
+        elem.elts = [self._clear_fake_elem(2), self._clear_fake_elem(3)]
+
+        assert source_parser._get_ending_line(elem) == 3
+
+    def test_handles_empty_elts(self):
+        elem = self._clear_fake_elem(1)
+        elem.elts = []
+
+        assert source_parser._get_ending_line(elem) == 1
+
+    def test_handles_generators(self):
+        elem = self._clear_fake_elem(1)
+        elem.generators = [self._clear_fake_elem(2), self._clear_fake_elem(3)]
+
+        assert source_parser._get_ending_line(elem) == 3
+
+    def test_handles_empty_generators(self):
+        elem = self._clear_fake_elem(1)
+        elem.generators = []
+
+        assert source_parser._get_ending_line(elem) == 1
+
+    def test_handles_iter(self):
+        elem = self._clear_fake_elem(1)
+        elem.iter = self._clear_fake_elem(2)
+
+        assert source_parser._get_ending_line(elem) == 2
+
+    def test_handles_values(self):
+        elem = self._clear_fake_elem(1)
+        elem.values = [self._clear_fake_elem(2), self._clear_fake_elem(3)]
+
+        assert source_parser._get_ending_line(elem) == 3
+
+    def test_handles_empty_values(self):
+        elem = self._clear_fake_elem(1)
+        elem.values = []
+
+        assert source_parser._get_ending_line(elem) == 1
+
+    def test_handles_value(self):
+        elem = self._clear_fake_elem(1)
+        elem.value = self._clear_fake_elem(2)
+
+        assert source_parser._get_ending_line(elem) == 2
+
+
 def test_warns_on_invalid_file(capsys):
     # This test cannot be within a class, since it uses the capsys fixture
     invalid_methods = source_parser.get_top_level_methods('foo.bar')

@@ -83,19 +83,22 @@ def _get_ending_line(expr: Any) -> int:
         if hasattr(final_stmt, 'lineno'):
             highest_line_no = final_stmt.lineno
 
-        if hasattr(final_stmt, 'body'):
+        body_is_valid = hasattr(final_stmt, 'body') and final_stmt.body
+        if body_is_valid and isinstance(final_stmt.body, list):
             final_stmt = final_stmt.body[-1]
+        elif body_is_valid:
+            final_stmt = final_stmt.body
         elif hasattr(final_stmt, 'exc'):
             final_stmt = final_stmt.exc
-        elif hasattr(final_stmt, 'args'):
+        elif hasattr(final_stmt, 'args') and final_stmt.args:
             final_stmt = final_stmt.args[-1]
-        elif hasattr(final_stmt, 'elts'):
+        elif hasattr(final_stmt, 'elts') and final_stmt.elts:
             final_stmt = final_stmt.elts[-1]
-        elif hasattr(final_stmt, 'generators'):
+        elif hasattr(final_stmt, 'generators') and final_stmt.generators:
             final_stmt = final_stmt.generators[-1]
         elif hasattr(final_stmt, 'iter'):
             final_stmt = final_stmt.iter
-        elif hasattr(final_stmt, 'values'):
+        elif hasattr(final_stmt, 'values') and final_stmt.values:
             final_stmt = final_stmt.values[-1]
         elif hasattr(final_stmt, 'value'):
             # some (but not all) value attributes have
@@ -147,6 +150,14 @@ def get_top_level_methods(source_path: str) -> List[Any]:
         #  we don't want to "break the build".)
         sys.stderr.write(
             f'WARNING: could not read file: {source_path}\n')
+        sys.stderr.write(
+            f'\t{str(err)}\n')
+
+        return []
+    except SyntaxError as err:
+        # Fail gracefully if a file doesn't use py3-compliant syntax.
+        sys.stderr.write(
+            f'WARNING: could not parse file: {source_path}\n')
         sys.stderr.write(
             f'\t{str(err)}\n')
 
