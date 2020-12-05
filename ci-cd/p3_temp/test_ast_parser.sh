@@ -33,6 +33,7 @@ pip install --user -r requirements-dev.txt
 ./python_bootstrap.py core/test_data/parser/flask
 ./python_bootstrap.py core/test_data/parser/http
 ./python_bootstrap.py core/test_data/parser/nested_tags
+./python_bootstrap.py core/test_data/parser/snippet_invocation_methods
 ./python_bootstrap.py core/test_data/parser/webapp2
 ./python_bootstrap.py core/test_data/parser/duplicate_region_tag
 ./python_bootstrap.py core/test_data/yaml

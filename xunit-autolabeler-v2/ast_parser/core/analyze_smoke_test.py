@@ -15,7 +15,7 @@
 import os
 import unittest
 
-from ast_parser.core import analyze
+from ast_parser.core import analyze, constants
 
 import mock
 
@@ -70,6 +70,27 @@ class AnalyzeJsonMiscTests(unittest.TestCase):
         tag_sets = [method.region_tags for method in source_methods]
 
         assert sum(tag_set == ['not_main'] for tag_set in tag_sets) == 1
+
+    def test_handle_snippet_invocation_methods(self):
+        test_dir = os.path.join(_TEST_DIR, 'snippet_invocation_methods')
+        analyze_result = analyze.analyze_json(
+            os.path.join(test_dir, 'polyglot_snippet_data.json'),
+            test_dir
+        )
+        _, _, _, source_methods = analyze_result
+
+        assert len(source_methods) == 3
+
+        # make sure the methods were parsed
+        # (in the right order, to make testing easier)
+        assert source_methods[0].name == 'some_method'
+        assert source_methods[1].name == 'another_method'
+        assert source_methods[2].name in constants.SNIPPET_INVOCATION_METHODS
+
+        # make sure these methods' tests were detected
+        print(source_methods[0])
+        assert source_methods[0].test_methods
+        assert source_methods[1].test_methods
 
 
 class AnalyzeJsonMockCallTests(unittest.TestCase):

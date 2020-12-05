@@ -61,3 +61,6 @@ REQUIRED_KEY_VALUES = frozendict({
 
 # region tags that don't uniquely identify a sample
 IGNORED_REGION_TAGS = ('app', 'all')
+
+# names of methods used to invoke snippets from within a source file
+SNIPPET_INVOCATION_METHODS = ('run_sample',)
