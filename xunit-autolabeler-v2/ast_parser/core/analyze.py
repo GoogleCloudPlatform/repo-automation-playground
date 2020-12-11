@@ -19,6 +19,7 @@ from typing import Dict, List, Set, Tuple
 
 from ast_parser.lib import constants as lib_constants
 
+from . import constants
 from . import polyglot_drift_data as pdd
 from . import polyglot_parser, yaml_utils
 
@@ -125,12 +126,22 @@ def _dedupe_source_methods(
     Returns:
         A de-duped list of (snippet) source methods
     """
-    source_methods_deduped = {
-        ','.join(sorted(method.region_tags)): method
-        for method in source_methods
-    }.values()
+    source_method_keys = set()
+    deduped_methods = []
 
-    return list(source_methods_deduped)
+    for method in source_methods:
+        if method.name in constants.SNIPPET_INVOCATION_METHODS:
+            key = f'{method.source_path},{method.name}'
+        else:
+            key = ','.join(sorted(method.region_tags))
+
+        if key in source_method_keys:
+            continue
+
+        source_method_keys.add(key)
+        deduped_methods.append(method)
+
+    return list(deduped_methods)
 
 
 def _store_tests_on_methods(
@@ -238,7 +249,10 @@ def analyze_json(
         grep_tags = grep_tags.union(grep_tag_names)
         ignored_tags = ignored_tags.union(ignored_tag_names)
 
-    source_methods = [method for method in tuple_methods if method.region_tags]
+    source_methods = [method for method in tuple_methods
+                      if method.region_tags or
+                      method.name in constants.SNIPPET_INVOCATION_METHODS]
+
     source_methods = _dedupe_source_methods(source_methods)
 
     _store_tests_on_methods(source_methods, test_method_map)

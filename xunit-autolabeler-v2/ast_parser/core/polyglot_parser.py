@@ -35,8 +35,9 @@ def add_children_drift_data(
     Note:
         This method should be called once all other parsing is complete
     """
+    recursed_nodes = set()
 
-    def _recursor(method: pdd.PolyglotDriftData) -> pdd.PolyglotDriftData:
+    def _recursor(method: pdd.PolyglotDriftData) -> None:
         """Recursively traverses through a snippet method's child methods
 
         Args:
@@ -45,15 +46,18 @@ def add_children_drift_data(
         Returns:
             An updated PolyglotDriftData object
         """
-        for child in method.children:
-            child_methods = [child_method for child_method in source_methods
-                             if 'name' in child_method]
-            child_methods = [child_method for child_method in child_methods
-                             if child == child_method['name']]
 
-            # prevent infinite loops
-            child_methods = [child_method for child_method in child_methods
-                             if child_method['name'] != method['name']]
+        # Prevent infinite loops
+        method_key = (method.name, method.class_name, method.source_path)
+        if method_key in recursed_nodes:
+            return
+        recursed_nodes.add(method_key)
+
+        for child in method.children:
+            child_methods = [
+                child_method for child_method in source_methods if
+                child == child_method.name
+            ]
 
             if child_methods:
                 child_method = child_methods[0]
@@ -64,6 +68,36 @@ def add_children_drift_data(
 
         method.region_tags = list(set(method.region_tags))
         method.test_methods = list(set(method.test_methods))
+
+    """
+    EDGE CASE:
+        Some snippets (e.g. Python talent solution API) are wrapped in a
+        separate "snippet invocation method" (e.g. "run_sample"), that itself
+        is invoked within the tests.
+
+    SOLUTION:
+        Move snippet-invocation method tests to their invoked [child] methods
+        (This *cannot* be done with the child-labeling system, as that looks
+         for tests in the child methods - *not* the parent ones!)
+    """
+    for method in source_methods:
+        if method.name not in constants.SNIPPET_INVOCATION_METHODS:
+            continue
+
+        for child_name in method.children:
+            child_methods = [
+                child_method for child_method in source_methods
+                if child_method.name == child_name and
+                method.source_path == child_method.source_path
+            ]
+
+            if child_methods:
+                child_methods[0].test_methods.extend(method.test_methods)
+
+        # Remove direct children of snippet invocation methods
+        # (Since the invocation method's test data was propagated to them)
+        method.children = []
+        method.test_methods = []
 
     for method in source_methods:
         _recursor(method)

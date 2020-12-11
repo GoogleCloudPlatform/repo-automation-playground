@@ -93,12 +93,12 @@ class ProcessRegionTagsTest(unittest.TestCase):
 
 
 class DedupeSourceMethodsTest(unittest.TestCase):
-    def _create_drift_data(self, region_tags):
+    def _create_drift_data(self, region_tags, name=None):
         return pdd.PolyglotDriftData(
-            name=None,
+            name=name,
             class_name=None,
             method_name=None,
-            source_path=None,
+            source_path='',
             start_line=None,
             end_line=None,
             parser=None,
@@ -120,6 +120,22 @@ class DedupeSourceMethodsTest(unittest.TestCase):
         ]
 
         assert len(analyze._dedupe_source_methods(methods)) == 1
+
+    def test_keeps_snippet_invocation_methods_without_tags(self):
+        method_name = 'run_sample'
+        methods = [
+            self._create_drift_data(['a', 'b']),
+            self._create_drift_data(['b', 'a']),
+
+            # this method is considered a 'snippet invocation method'
+            # these methods aren't required to have region tags
+            self._create_drift_data([], method_name),
+        ]
+
+        results = analyze._dedupe_source_methods(methods)
+
+        assert len(results) == 2
+        assert results[1].name == method_name
 
 
 class StoreTestsOnMethodsTests(unittest.TestCase):
