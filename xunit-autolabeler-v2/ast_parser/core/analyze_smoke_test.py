@@ -88,7 +88,6 @@ class AnalyzeJsonMiscTests(unittest.TestCase):
         assert source_methods[2].name in constants.SNIPPET_INVOCATION_METHODS
 
         # make sure these methods' tests were detected
-        print(source_methods[0])
         assert source_methods[0].test_methods
         assert source_methods[1].test_methods
 

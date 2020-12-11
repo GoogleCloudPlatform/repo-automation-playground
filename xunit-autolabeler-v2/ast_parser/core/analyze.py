@@ -131,7 +131,7 @@ def _dedupe_source_methods(
 
     for method in source_methods:
         if method.name in constants.SNIPPET_INVOCATION_METHODS:
-            key = method.source_path + ',' + method.name
+            key = f'{method.source_path},{method.name}'
         else:
             key = ','.join(sorted(method.region_tags))
 
