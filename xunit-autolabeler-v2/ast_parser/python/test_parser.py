@@ -150,15 +150,19 @@ def get_test_key_to_snippet_map(
             results += __recursor__(expr.test.left)
             return results
 
-        if '.With' in type_str or '.For' in type_str:
-            results = []
+        results = []
+        if hasattr(expr, 'finalbody'):
+            # Used in try-catch-finally statements
+            for subexpr in expr.finalbody:
+                results += [subexpr for subexpr
+                            in __recursor__(subexpr) if subexpr]
+
+        if constants.BODY_IS_ARRAY_REGEX.search(type_str):
             for subexpr in expr.body:
                 results += [subexpr for subexpr
                             in __recursor__(subexpr) if subexpr]
 
-            return results  # may contain duplicates
-
-        return []
+        return results  # may contain duplicates
 
     for method in test_methods:
         for subexpr in method.body:

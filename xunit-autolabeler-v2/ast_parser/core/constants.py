@@ -19,6 +19,8 @@ from frozendict import frozendict
 
 REGION_TAG_ONLY_REGEX = re.compile(r'(?<=\s)+(\w|-)+(?=])')
 
+BODY_IS_ARRAY_REGEX = re.compile('ast.(With|For|Try|FunctionDef)')
+
 IGNORED_METHOD_NAMES = (
     'run_command',
     'parse_command_line_args',
