@@ -51,7 +51,7 @@ def get_json_for_dir(root_dir: str) -> Dict[str, Union[List, Dict]]:
     test_files = [file for file in python_files
                   if constants.TEST_FILE_MARKER in file]
 
-    test_method_map: Dict[Tuple[str, str], List[Tuple[str, str]]] = dict()
+    test_method_map: Dict[Tuple[str, str], List[Tuple[str, str]]] = {}
     for file in test_files:
         tests = _parse_test(file, source_methods)
         for test_keys, test_value in tests.items():
