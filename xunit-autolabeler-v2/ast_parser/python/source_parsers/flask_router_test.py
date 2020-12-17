@@ -73,7 +73,11 @@ class DecoratorTests(unittest.TestCase):
 
         assert drift.parser == 'flask_router'
         assert drift.class_name == 'test_flask_class'
-        assert drift.start_line == 47
+
+        # This differs between py3.7 and py3.8
+        # The difference doesn't affect parser logic,
+        # so we allow both possible results.
+        assert drift.start_line in [47, 48]
 
         # Don't check http_methods here
         # (covered in HttpMethodTests)

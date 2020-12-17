@@ -112,7 +112,7 @@ class GetTestToMethodMapSmokeTests(unittest.TestCase):
     def test_handles_function_wrapped_calls(self):
         path = os.path.join(
             TEST_DATA_DIR,
-            'parser/function_wrapped/function_wrapped_test.py'
+            'parser/function_wrapped_calls/function_wrapped_test.py'
         )
 
         test_methods = test_parser.get_test_methods(path)
