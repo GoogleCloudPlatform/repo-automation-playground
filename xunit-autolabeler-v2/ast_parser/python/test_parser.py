@@ -90,7 +90,7 @@ def get_test_methods(test_path: str) -> List[Any]:
 
 def get_test_key_to_snippet_map(
     test_methods: List[Any]
-) -> Dict[Tuple[str, str], Tuple[str, str]]:
+) -> Dict[Tuple[str, str], List[Tuple[str, str]]]:
     """Map the supplied test methods to their relevant 'test keys'
 
     Test keys are tuples that a) identify a particular snippet and b)
@@ -104,7 +104,7 @@ def get_test_key_to_snippet_map(
     Returns: a mapping between test keys and their corresponding
              test data (file paths and method names)
     """
-    test_to_method_key_map = {}
+    test_to_method_key_map: Dict[Tuple[str, str], List[Tuple[str, str]]] = {}
 
     def __recursor__(expr: Any) -> List[drift_test.DriftTest]:
         """Recursively find test keys within an expression
