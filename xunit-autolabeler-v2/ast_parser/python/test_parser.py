@@ -90,7 +90,7 @@ def get_test_methods(test_path: str) -> List[Any]:
 
 def get_test_key_to_snippet_map(
     test_methods: List[Any]
-) -> Dict[Tuple[str, str], Tuple[str, str]]:
+) -> Dict[Tuple[str, str], List[Tuple[str, str]]]:
     """Map the supplied test methods to their relevant 'test keys'
 
     Test keys are tuples that a) identify a particular snippet and b)
@@ -104,7 +104,7 @@ def get_test_key_to_snippet_map(
     Returns: a mapping between test keys and their corresponding
              test data (file paths and method names)
     """
-    test_to_method_key_map = {}
+    test_to_method_key_map: Dict[Tuple[str, str], List[Tuple[str, str]]] = {}
 
     def __recursor__(expr: Any) -> List[drift_test.DriftTest]:
         """Recursively find test keys within an expression
@@ -150,15 +150,19 @@ def get_test_key_to_snippet_map(
             results += __recursor__(expr.test.left)
             return results
 
-        if '.With' in type_str or '.For' in type_str:
-            results = []
+        results = []
+        if hasattr(expr, 'finalbody'):
+            # Used in try-catch-finally statements
+            for subexpr in expr.finalbody:
+                results += [subexpr for subexpr
+                            in __recursor__(subexpr) if subexpr]
+
+        if constants.BODY_IS_ARRAY_REGEX.search(type_str):
             for subexpr in expr.body:
                 results += [subexpr for subexpr
                             in __recursor__(subexpr) if subexpr]
 
-            return results  # may contain duplicates
-
-        return []
+        return results  # may contain duplicates
 
     for method in test_methods:
         for subexpr in method.body:

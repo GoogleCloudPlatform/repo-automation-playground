@@ -16,6 +16,8 @@
 import os
 import unittest
 
+import pytest
+
 from . import test_parser
 
 
@@ -106,3 +108,50 @@ class GetTestToMethodMapSmokeTests(unittest.TestCase):
         entry = test_map[key]
         assert len(entry) == 1
         assert entry[0] == (path, 'test_not_main')
+
+    def test_handles_function_wrapped_calls(self):
+        path = os.path.join(
+            TEST_DATA_DIR,
+            'parser/function_wrapped_calls/function_wrapped_test.py'
+        )
+
+        test_methods = test_parser.get_test_methods(path)
+        test_map = test_parser.get_test_key_to_snippet_map(test_methods)
+
+        key = ('function_wrapped', 'main')
+
+        assert key in test_map
+
+        entry = test_map[key]
+        assert len(entry) == 1
+        assert entry[0] == (path, 'test_function_wrapped')
+
+
+class GetTestToMethodMapTryFinallyTests(unittest.TestCase):
+    @pytest.fixture(autouse=True)
+    def _test_methods(self):
+        self.path = os.path.join(
+            TEST_DATA_DIR,
+            'parser/try_finally/try_finally_test.py'
+        )
+        self.test_methods = test_parser.get_test_methods(self.path)
+        self.test_map = (
+            test_parser.get_test_key_to_snippet_map(self.test_methods))
+
+    def test_finds_tests_in_try_clauses(self):
+        key = ('try_finally', 'try_method')
+        assert key in self.test_map
+
+        entry = self.test_map[key]
+        self.assertEqual(entry, [(self.path, 'test_try_finally')])
+
+    def test_ignores_tests_in_except_clauses(self):
+        key = ('try_finally', 'exception_handler')
+        assert key not in self.test_map
+
+    def test_finds_tests_in_finally_clauses(self):
+        key = ('try_finally', 'final_method')
+        assert key in self.test_map
+
+        entry = self.test_map[key]
+        self.assertEqual(entry, [(self.path, 'test_try_finally')])
