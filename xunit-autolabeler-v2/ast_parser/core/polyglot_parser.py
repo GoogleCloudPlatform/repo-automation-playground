@@ -56,7 +56,8 @@ def add_children_drift_data(
         for child in method.children:
             child_methods = [
                 child_method for child_method in source_methods if
-                child == child_method.name
+                child == child_method.name and
+                method.source_path == child_method.source_path
             ]
 
             if child_methods:

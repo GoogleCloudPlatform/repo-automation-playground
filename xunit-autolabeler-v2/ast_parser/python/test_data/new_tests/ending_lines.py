@@ -55,7 +55,6 @@ def nested_with_statements():
         return 0
 
 
-# TODOs
 def ending_tuple():
     return (
         # dummy comment
@@ -95,3 +94,23 @@ def ending_list_comp():
             # to take up
             # three lines
             in range(2)]
+
+
+def ending_if_else():
+    if 1 == 2:
+        return True
+    else:
+        # dummy comment
+        # to take up
+        # three lines
+        return False
+
+
+def ending_if_elif():
+    if 1 == 2:
+        return True
+    elif True:
+        # dummy comment
+        # to take up
+        # three lines
+        return False

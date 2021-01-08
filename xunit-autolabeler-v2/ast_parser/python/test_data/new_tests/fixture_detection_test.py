@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC.
+# Copyright 2020 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+def setup():
+    pass
 
-import re
+def init():
+    pass
 
+def setup_something():
+    pass
 
-TAG_LINE_RANGE = 8
+def init_something():
+    pass
 
-# Per https://flask.palletsprojects.com/en/1.1.x/quickstart/#http-methods
-FLASK_DEFAULT_METHODS = ('get',)
+def another_setup():
+    pass
 
-TEST_FILE_MARKER = 'test.py'
-
-TEST_METHOD_REGEX = re.compile('(^test_|((^|_)(setup|init)))')
+def another_init():
+    pass
