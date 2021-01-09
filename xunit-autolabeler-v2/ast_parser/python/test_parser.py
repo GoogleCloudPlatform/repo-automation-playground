@@ -134,7 +134,7 @@ def get_test_key_to_snippet_map(
                func.attr in constants.HTTP_METHOD_NAMES and \
                hasattr(expr.args[0], 's'):
                 return [drift_test.DriftTest(
-                    url=expr.args[0].s,
+                    url=expr.args[0].s.split('?')[0],
                     http_method=func.attr
                 )]
 
