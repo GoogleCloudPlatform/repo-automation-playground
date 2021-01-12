@@ -46,6 +46,10 @@ def _get_method_children(expr: Any) -> List[Any]:
         for sub_expr in expr.body:
             results += _get_method_children(sub_expr)
 
+    if hasattr(expr, 'orelse') and isinstance(expr.orelse, list):
+        for sub_expr in expr.orelse:
+            results += _get_method_children(sub_expr)
+
     if hasattr(expr, 'value'):
         results += _get_method_children(expr.value)
 
@@ -84,7 +88,11 @@ def _get_ending_line(expr: Any) -> int:
             highest_line_no = final_stmt.lineno
 
         body_is_valid = hasattr(final_stmt, 'body') and final_stmt.body
-        if body_is_valid and isinstance(final_stmt.body, list):
+        if hasattr(final_stmt, 'orelse') and final_stmt.orelse:
+            # 'orelse' should take priority over 'body'
+            # (as it always has a lower ending line)
+            final_stmt = final_stmt.orelse[-1]
+        elif body_is_valid and isinstance(final_stmt.body, list):
             final_stmt = final_stmt.body[-1]
         elif body_is_valid:
             final_stmt = final_stmt.body

@@ -144,6 +144,7 @@ class GetEndingLineNumberTest(unittest.TestCase):
         del fake_elem.iter
         del fake_elem.value
         del fake_elem.values
+        del fake_elem.orelse
 
         fake_elem.lineno = lineno
 
@@ -230,6 +231,12 @@ class GetEndingLineNumberTest(unittest.TestCase):
     def test_handles_value(self):
         elem = self._clear_fake_elem(1)
         elem.value = self._clear_fake_elem(2)
+
+        assert source_parser._get_ending_line(elem) == 2
+
+    def test_handles_orelse(self):
+        elem = self._clear_fake_elem(1)
+        elem.orelse = [self._clear_fake_elem(2)]
 
         assert source_parser._get_ending_line(elem) == 2
 

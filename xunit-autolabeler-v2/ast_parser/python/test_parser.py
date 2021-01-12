@@ -18,8 +18,9 @@ import os
 import sys
 from typing import Any, Dict, List, Tuple
 
-from ast_parser.core import constants
+from ast_parser.core import constants as core_constants
 
+from . import constants as python_constants
 from . import drift_test
 
 
@@ -41,8 +42,8 @@ def _get_test_nodes(parsed_nodes: List[Any]) -> List[Any]:
             # Concatenate node.body (which is an array)
             possible_test_nodes += node.body
 
-    return [node for node in possible_test_nodes
-            if hasattr(node, 'name') and node.name.startswith('test_')]
+    return [node for node in possible_test_nodes if hasattr(node, 'name') and
+            python_constants.TEST_METHOD_REGEX.search(node.name)]
 
 
 def get_test_methods(test_path: str) -> List[Any]:
@@ -130,8 +131,8 @@ def get_test_key_to_snippet_map(
             func = expr.func
 
             if hasattr(func.value, 'id') and \
-               func.value.id in constants.HTTP_CLASS_NAMES and \
-               func.attr in constants.HTTP_METHOD_NAMES and \
+               func.value.id in core_constants.HTTP_CLASS_NAMES and \
+               func.attr in core_constants.HTTP_METHOD_NAMES and \
                hasattr(expr.args[0], 's'):
                 return [drift_test.DriftTest(
                     url=expr.args[0].s.split('?')[0],
@@ -157,7 +158,7 @@ def get_test_key_to_snippet_map(
                 results += [subexpr for subexpr
                             in __recursor__(subexpr) if subexpr]
 
-        if constants.BODY_IS_ARRAY_REGEX.search(type_str):
+        if core_constants.BODY_IS_ARRAY_REGEX.search(type_str):
             for subexpr in expr.body:
                 results += [subexpr for subexpr
                             in __recursor__(subexpr) if subexpr]

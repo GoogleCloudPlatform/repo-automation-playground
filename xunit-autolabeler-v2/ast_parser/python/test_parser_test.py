@@ -62,6 +62,16 @@ class GetTestMethodsTests(unittest.TestCase):
         assert test_methods[0].name == 'test_first'
         assert test_methods[1].name == 'test_second'
 
+    def test_detects_fixture_methods(self):
+        path = os.path.join(
+            TEST_DATA_DIR,
+            'new_tests/fixture_detection_test.py'
+        )
+
+        test_methods = test_parser.get_test_methods(path)
+
+        assert len(test_methods) == 6
+
 
 def test_warns_on_invalid_file(capsys):
     # This test cannot be within a class, since it uses the capsys fixture

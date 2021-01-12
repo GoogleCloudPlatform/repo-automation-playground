@@ -42,10 +42,12 @@ def _methods():
         (2, 34, 40),
         (3, 43, 49),
         (4, 52, 55),
-        (5, 59, 66),
-        (6, 70, 77),
-        (7, 81, 88),
-        (8, 92, 97)
+        (5, 58, 66),
+        (6, 69, 77),
+        (7, 80, 88),
+        (8, 91, 97),
+        (9, 99, 106),
+        (10, 109, 116)
     ],
     ids=[
         'one_level_function',
@@ -57,6 +59,8 @@ def _methods():
         'returning_multiline_dict',
         'returning_multiline_array',
         'returning_multiline_list_comp',
+        'if_else',
+        'if_elseif'
     ]
 )
 def test_ending_line(method_idx, start, end, _methods):
@@ -66,4 +70,11 @@ def test_ending_line(method_idx, start, end, _methods):
     drift = method.drift
 
     assert drift.start_line == start
-    assert drift.end_line == end
+
+    # This differs between py3.8 and py3.9
+    # The difference doesn't affect parser logic,
+    # so we allow both possible results.
+    #
+    # Likely caused by
+    # https://bugs.python.org/issue34822
+    assert drift.end_line in [end - 1, end]
