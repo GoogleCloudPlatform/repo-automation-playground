@@ -92,6 +92,19 @@ class GetTestToMethodMapSmokeTests(unittest.TestCase):
         assert entry[0] == (path, 'test_print_name')
         assert entry[1] == (path, 'test_print_hello_world')
 
+    def test_handles_http_methods(self):
+        path = os.path.join(
+            TEST_DATA_DIR,
+            'parser/flask/flask_parameterized_test.py'
+        )
+
+        test_methods = test_parser.get_test_methods(path)
+        test_map = test_parser.get_test_key_to_snippet_map(test_methods)
+
+        key = ('get', '/')
+
+        assert key in test_map
+
     def test_handles_class_and_method_names(self):
         path = os.path.join(
             TEST_DATA_DIR,
