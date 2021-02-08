@@ -26,9 +26,9 @@ nyc --all --reporter=clover --report-dir="tabs_spaces_test/test-test-tabs" mocha
 nyc --all --reporter=clover --report-dir="tabs_spaces_test/test-test-spaces" mocha *.test.js --grep "test spaces" --exit
 nyc --all --reporter=clover --report-dir="tabs_spaces_test/all" mocha *.test.js --exit
 
-## Blacklisted filenames test
-cd $BASE_DIR/filename_blacklist_test
-nyc --all --reporter=clover --report-dir="filename_blacklist_test" mocha *.test.js --exit
+## Denylisted filenames test
+cd $BASE_DIR/filename_denylist_test
+nyc --all --reporter=clover --report-dir="filename_denylist_test" mocha *.test.js --exit
 
 ## Region tag test
 cd $BASE_DIR/region_tags_test
