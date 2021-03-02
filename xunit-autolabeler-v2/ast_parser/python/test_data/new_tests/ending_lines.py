@@ -114,3 +114,7 @@ def ending_if_elif():
         # to take up
         # three lines
         return False
+
+
+def one_line_if():
+    return 1 if True else 2
