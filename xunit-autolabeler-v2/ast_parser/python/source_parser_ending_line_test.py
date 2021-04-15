@@ -47,7 +47,8 @@ def _methods():
         (7, 80, 88),
         (8, 91, 97),
         (9, 99, 106),
-        (10, 109, 116)
+        (10, 109, 116),
+        (11, 119, 120)
     ],
     ids=[
         'one_level_function',
@@ -60,7 +61,8 @@ def _methods():
         'returning_multiline_array',
         'returning_multiline_list_comp',
         'if_else',
-        'if_elseif'
+        'if_elseif',
+        'one_line_if'
     ]
 )
 def test_ending_line(method_idx, start, end, _methods):

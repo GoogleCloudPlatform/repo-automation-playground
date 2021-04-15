@@ -91,7 +91,10 @@ def _get_ending_line(expr: Any) -> int:
         if hasattr(final_stmt, 'orelse') and final_stmt.orelse:
             # 'orelse' should take priority over 'body'
             # (as it always has a lower ending line)
-            final_stmt = final_stmt.orelse[-1]
+            final_stmt = final_stmt.orelse
+            if isinstance(final_stmt, list):
+                # .orelse may or may not be a list
+                final_stmt = final_stmt[-1]
         elif body_is_valid and isinstance(final_stmt.body, list):
             final_stmt = final_stmt.body[-1]
         elif body_is_valid:
