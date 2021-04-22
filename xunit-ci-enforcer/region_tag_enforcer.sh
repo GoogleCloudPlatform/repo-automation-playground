@@ -67,12 +67,12 @@ function check_dir {
 		return # Do nothing
 	fi
 
-	# Whitelisting
-	#   Whitelist one-character "tags" (e.g. "_") that are probably false positives
+	# Allow listing
+	#   Allow list one-character "tags" (e.g. "_") that are probably false positives
 	SAMPLE_TAGS=$(echo "$SAMPLE_TAGS" | grep -E ".{2,}")
 	TEST_TAGS=$(echo "$TEST_TAGS" | grep -E ".{2,}")
 
-	#   Whitelist tags containing "_setup"
+	#   Allow list tags containing "_setup"
 	SAMPLE_TAGS=$(echo "$SAMPLE_TAGS" | grep -v "_setup")
 	TEST_TAGS=$(echo "$TEST_TAGS" | grep -v "_setup")
 
