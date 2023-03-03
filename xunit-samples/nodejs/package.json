@@ -8,6 +8,6 @@
   "author": "anassri@google.com",
   "license": "Apache-2.0",
   "dependencies": {
-    "mocha": "^6.2.0"
+    "mocha": "^6.2.3"
   }
 }
